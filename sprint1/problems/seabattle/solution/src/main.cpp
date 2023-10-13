@@ -75,10 +75,9 @@ public:
                 PrintFields(); //печать полей
                 std::cout << "Your move: "sv;
                 std::string move;
-                std::cin >> move;  // текщий ход
-                //  move += "\n";
+                std::cin >> move;  // текущий ход
+    
                 WriteExact(socket, move);
-                //  send_move(socket, move); //отправить сопернику текущий ход
                 auto my_move_result = ReadExact<1>(socket);
                 if (my_move_result.value() == "2")
                 {
@@ -96,7 +95,6 @@ public:
                     other_field_.MarkHit(ParseMove(move).value().first, ParseMove(move).value().second);
                     my_initiative = false;
                 }
-                //  std::cout << my_move_result.value() << "\n";
             }
             else
             {
@@ -107,14 +105,6 @@ public:
                 int result_of_opponent_move = static_cast<int>(my_field_.Shoot(coordinates_on_field.value().first, coordinates_on_field.value().second));
                 if (result_of_opponent_move == 0) my_initiative = true;
                 WriteExact(socket, std::to_string(result_of_opponent_move));
-                // std::cout << coordinates_on_field.value().first << "  " << coordinates_on_field.value().second << "\n";
-                // auto res_of_oppnent_move = read_move(socket); //прочитать текущий ход соперника
-                // res_of_oppnent_move.resize(res_of_oppnent_move.size() - 1);
-                // auto coordinates_on_field = ParseMove(res_of_oppnent_move); //понять, куда он ударил (в координатах)
-                // std::cout << coordinates_on_field.value().first << "  " << coordinates_on_field.value().second << "\n";
-                //вычислить результат выстрела (успешный или нет) соперника и преобразовать это к типу char
-                // char result = my_field_.Shoot(coordinates_on_field.value().first, coordinates_on_field.value().second);
-                // send_result(socket, result);
             }
 
         }
