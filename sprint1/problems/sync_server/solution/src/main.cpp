@@ -66,16 +66,16 @@ StringResponse HandleRequest(StringRequest&& req) //понять почему п
         };
     if (req.method_string() == "GET")
     {
-        std::string str1 = "<strong>Hello, ";
+        std::string str1 = "Hello, ";
         std::string targ = static_cast<std::string> (req.target().substr(1, req.target().size() - 1));
-        std::string str2 = "</strong>";
+        std::string str2 = "";
         return text_response(http::status::ok, str1 + targ + str2);
     }
     if (req.method_string() == "HEAD")
         return text_response(http::status::ok, "");
     auto response = text_response(http::status::method_not_allowed, "Invalid method");
     response.set(http::field::allow, "GET, HEAD");
-    return response;
+    return response ;
 }
 
 
@@ -105,7 +105,7 @@ int main() {
     auto address = net::ip::make_address("0.0.0.0");
 
     tcp::acceptor acceptor(io_context, { address, port });
-    std::cout << "Server has started..."sv;
+    std::cout << "Server has started..."sv << std::endl;
     for (;;)
     {
         tcp::socket socket(io_context);
