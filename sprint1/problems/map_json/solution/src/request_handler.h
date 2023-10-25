@@ -59,21 +59,21 @@ public:
                     "\"name\": \"" + map->GetName() + "\",\n" +
                     "\"roads\": [\n";
                 for (auto& it : map->GetRoads()) {
-                    answ += "{ \"x0\": " + std::to_string(it.GetStart().x) + ", \"y0\":" + std::to_string(it.GetStart().y) + ",";
-                    if (it.IsHorizontal()) answ += "\"x1\":" + std::to_string(it.GetEnd().x) + "}\n";
-                    if (it.IsVertical()) answ += "\"y1\":" + std::to_string(it.GetEnd().y) + "},\n";
+                    answ += "{ \"x0\": " + std::to_string(it.GetStart().x) + ", \"y0\": " + std::to_string(it.GetStart().y) + ",";
+                    if (it.IsHorizontal()) answ += "\"x1\": " + std::to_string(it.GetEnd().x) + " },\n";
+                    if (it.IsVertical()) answ += "\"y1\": " + std::to_string(it.GetEnd().y) + " },\n";
                 }
                 answ.erase(answ.size() - 2, answ.size());
                 answ += "\n],\n \"buildings\": [\n";
                 for (auto& it : map->GetBuildings()) {
-                    answ += "\"x\": " + std::to_string(it.GetBounds().position.x) + ", \"y\": " + std::to_string(it.GetBounds().position.y) + ", \"w\": " +
-                        std::to_string(it.GetBounds().size.width) + ", \"h\": " + std::to_string(it.GetBounds().size.height) + "},\n";
+                    answ += "{ \"x\": " + std::to_string(it.GetBounds().position.x) + ", \"y\": " + std::to_string(it.GetBounds().position.y) + ", \"w\": " +
+                        std::to_string(it.GetBounds().size.width) + ", \"h\": " + std::to_string(it.GetBounds().size.height) + " },\n";
                 }
                 answ.erase(answ.size() - 2, answ.size());
                 answ += "\n],\n \"offices\": [\n";
                 for (auto& it : map->GetOffices()) {
-                    answ += "{ \"id\": \"" + *it.GetId() + "\", \"x\": " + std::to_string(it.GetPosition().x) + ", \"y\":" + std::to_string(it.GetPosition().y) +
-                        ", \"offsetX\": " + std::to_string(it.GetOffset().dx) + ", \"offsetY\": " + std::to_string(it.GetOffset().dy) + "},\n";
+                    answ += "{ \"id\": \"" + *it.GetId() + "\", \"x\": " + std::to_string(it.GetPosition().x) + ", \"y\": " + std::to_string(it.GetPosition().y) +
+                        ", \"offsetX\": " + std::to_string(it.GetOffset().dx) + ", \"offsetY\": " + std::to_string(it.GetOffset().dy) + " },\n";
                 }
                 answ.erase(answ.size() - 2, answ.size());
                 answ += "\n]\n}";
@@ -82,7 +82,7 @@ public:
             }
             else {
                 std::string answ = "{\n  \"code\": \"mapNotFound\",\n  \"message\": \"Map not found\"\n}";
-                send(text_response(http::status::method_not_allowed, answ));
+                send(text_response(http::status::not_found, answ));
                 return;
             }
         }
