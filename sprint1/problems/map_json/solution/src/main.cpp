@@ -74,5 +74,5 @@ int main(int argc, const char* argv[]) {
         std::cout << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
-    std::cin.get();
+  //  std::cin.get();
 }
