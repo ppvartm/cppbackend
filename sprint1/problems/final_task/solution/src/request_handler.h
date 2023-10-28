@@ -82,7 +82,7 @@ public:
                 return;
             }
             else {
-                std::string answ = "{\n  \"code\": \"mapNotFound\",\n  \"message\": \"Map not found\"\n}";
+                std::string answ = "{\n  \"code\": \"mapNotFound\",\n  \"message\": \"Map not found\"\n}"; //карта не нашлась
                 send(text_response(http::status::not_found, answ));
                 return;
             }
