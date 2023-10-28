@@ -31,7 +31,8 @@ public:
 
     RequestHandler(const RequestHandler&) = delete;
     RequestHandler& operator=(const RequestHandler&) = delete;
-
+    //Вероятно, есть способ записать ответ средствами boost/json, но я не очень понял, как это сделать в случае, если информация хранится
+    // в полях структуры 
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
        
@@ -52,7 +53,7 @@ public:
         }
         if ((req.method_string() == "GET") && (static_cast<std::string>(req.target()).substr(0, 16) == "/api/v1/maps/map"))
         {
-            std::string id = static_cast<std::string>(req.target()).substr(13);
+            std::string id = static_cast<std::string>(req.target()).substr(13); //получаем номер карты
             auto map = game_.FindMap(model::Map::Id(id));
             if (map) {
                 std::string answ = "{\n\"id\": \"" + *(map->GetId()) + "\",\n" +

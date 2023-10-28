@@ -16,16 +16,16 @@ model::Game LoadGame(const std::filesystem::path& json_path) {
     boost::json::error_code ec;
     auto value = boost::json::parse(s, ec);
    
-    auto maps = value.as_object().at("maps").as_array();
+    auto maps = value.as_object().at("maps").as_array(); 
 
     for (int j = 0; j < maps.size(); ++j) {
 
-        auto js_id = maps.at(0).as_object().at("id").as_string();
-        auto js_name = maps.at(0).as_object().at("name").as_string();
+        auto js_id = maps.at(j).as_object().at("id").as_string();
+        auto js_name = maps.at(j).as_object().at("name").as_string();
         model::Map::Id id{ static_cast<std::string>(js_id) };
         model::Map map(id, static_cast<std::string>(js_name));   //инициализация карты
 
-        auto roads = maps.at(0).as_object().at("roads").as_array();
+        auto roads = maps.at(j).as_object().at("roads").as_array();
         for (int i = 0; i < roads.size(); ++i) {
             model::Point start = { roads[i].as_object().at("x0").as_int64() , roads[i].as_object().at("y0").as_int64() };
             if (roads[i].as_object().contains("x1")) {
@@ -38,14 +38,14 @@ model::Game LoadGame(const std::filesystem::path& json_path) {
             }
         }
 
-        auto buildings = maps.at(0).as_object().at("buildings").as_array();
+        auto buildings = maps.at(j).as_object().at("buildings").as_array();
         for (int i = 0; i < buildings.size(); ++i) {
             model::Point position = { buildings[i].as_object().at("x").as_int64(),buildings[i].as_object().at("y").as_int64() };
             model::Size size = { buildings[i].as_object().at("w").as_int64(), buildings[i].as_object().at("h").as_int64() };
             map.AddBuilding(model::Building({ position, size }));
         }
 
-        auto offices = maps.at(0).as_object().at("offices").as_array();
+        auto offices = maps.at(j).as_object().at("offices").as_array();
         for (int i = 0; i < offices.size(); i++) {
             model::Office::Id id{ static_cast<std::string>(offices[i].as_object().at("id").as_string()) };
             model::Point position = { offices[i].as_object().at("x").as_int64(),offices[i].as_object().at("y").as_int64() };
