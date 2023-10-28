@@ -54,7 +54,7 @@ public:
         if ((req.method_string() == "GET") && (static_cast<std::string>(req.target()).substr(0, 16) == "/api/v1/maps/map"))
         {
             std::string id = static_cast<std::string>(req.target()).substr(13); //получаем номер карты
-            auto map = game_.FindMap(model::Map::Id(id));
+            auto map = game_.FindMap(model::Map::Id(id)); //ищем карту
             if (map) {
                 std::string answ = "{\n\"id\": \"" + *(map->GetId()) + "\",\n" +
                     "\"name\": \"" + map->GetName() + "\",\n" +
