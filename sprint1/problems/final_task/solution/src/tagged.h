@@ -12,7 +12,7 @@ namespace util {
  *  using Address = util::Tagged<std::string, AddressTag>;
  *
  *  struct NameTag{}; // метка типа для строки, хранящей имя
- *  using Name = util::Tagged<std::string, NameTag>;
+ *   using Name = util::Tagged<std::string, NameTag>;
  *
  *  struct Person {
  *      Name name;

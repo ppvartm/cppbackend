@@ -12,6 +12,7 @@ COPY conanfile.txt /app/
 RUN mkdir /app/build && cd /app/build && \
     conan install .. --build=missing
 
+
 COPY ./src /app/src
 COPY CMakeLists.txt /app/
 

@@ -13,7 +13,7 @@ public:
     }
 
 
-    // Запрос, тело которого представлено в виде строки
+     // Запрос, тело которого представлено в виде строки
     using StringRequest = http::request<http::string_body>;
     // Ответ, тело которого представлено в виде строки
     using StringResponse = http::response<http::string_body>;

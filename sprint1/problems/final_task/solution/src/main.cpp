@@ -15,7 +15,7 @@ namespace sys = boost::system;
 
 namespace {
 
-// Запускает функцию fn на n потоках, включая текущий
+ // Запускает функцию fn на n потоках, включая текущий
 template <typename Fn>
 void RunWorkers(unsigned n, const Fn& fn) {
     n = std::max(1u, n);

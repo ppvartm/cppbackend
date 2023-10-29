@@ -82,7 +82,7 @@ public:
     }
 
 private:
-    Rectangle bounds_;
+     Rectangle bounds_;
 };
 
 class Office {

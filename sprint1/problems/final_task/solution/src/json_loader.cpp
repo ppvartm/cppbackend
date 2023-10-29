@@ -1,5 +1,6 @@
 #include "json_loader.h"
 
+
 namespace json_loader {
 
 model::Game LoadGame(const std::filesystem::path& json_path) {
