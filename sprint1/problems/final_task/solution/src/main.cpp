@@ -17,12 +17,12 @@ namespace {
 
  // Запускает функцию fn на n потоках, включая текущий
 template <typename Fn>
-void RunWorkers(unsigned n, const Fn& fn) {
-    n = std::max(1u, n);
+void RunWorkers(unsigned num_of_threads, const Fn& fn) {
+    num_of_threads = std::max(1u, num_of_threads);
     std::vector<std::jthread> workers;
-    workers.reserve(n - 1);
+    workers.reserve(num_of_threads - 1);
     // Запускаем n-1 рабочих потоков, выполняющих функцию fn
-    while (--n) {
+    while (--num_of_threads) {
         workers.emplace_back(fn);
     }
     fn();
@@ -38,7 +38,7 @@ int main(int argc, const char* argv[]) {
     try {
         // 1. Загружаем карту из файла и построить модель игры
        model::Game game = json_loader::LoadGame(argv[1]);
-     //   model::Game game = json_loader::LoadGame("config.json");
+       //model::Game game = json_loader::LoadGame("../data/config.json");
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
         net::io_context ioc(num_threads);

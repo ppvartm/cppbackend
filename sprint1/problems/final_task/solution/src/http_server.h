@@ -6,7 +6,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
-using namespace std::literals;
+
 
 
 namespace http_server {
@@ -16,6 +16,8 @@ namespace http_server {
     namespace beast = boost::beast;
     namespace http = beast::http;
     namespace sys = boost::system;
+
+    using namespace std::literals;
 
     void ReportError(beast::error_code ec, std::string_view what);
 
@@ -38,26 +40,10 @@ namespace http_server {
         }
         ~SessionBase() = default;
     private:
-        void Read() {
-            request_ = {};
-            stream_.expires_after(30s);
-            http::async_read(stream_, buffer_, request_,
-                beast::bind_front_handler(&SessionBase::OnRead, GetSharedThis()));
-        }
-        void OnRead(beast::error_code ec, [[maybe_unused]] std::size_t bytes_read) {
-            if (ec == http::error::end_of_stream) return Close();
-            if (ec) return ReportError(ec, "read"sv);
-            HandleRequest(std::move(request_));
-        }
-        void OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written) {
-            if (ec) return ReportError(ec, "write"sv);
-            if (close) return Close();
-            Read();
-        }
-        void Close() {
-            beast::error_code ec;
-            stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
-        }
+        void Read();
+        void OnRead(beast::error_code ec, [[maybe_unused]] std::size_t bytes_read);
+        void OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written);
+        void Close();
         beast::tcp_stream stream_;
         beast::flat_buffer buffer_;
         HttpRequest request_;
@@ -107,7 +93,8 @@ namespace http_server {
                 beast::bind_front_handler(&Listener::OnAccept, this->shared_from_this()));
         }
         void OnAccept(sys::error_code ec, tcp::socket socket) {
-            if (ec) return ReportError(ec, "accept"sv);
+            if (ec) 
+               return ReportError(ec, "accept"sv);
             AsyncRunSession(std::move(socket));
             DoAccept();
         }

@@ -2,10 +2,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <boost/json.hpp>
 
 #include "tagged.h"
 
 namespace model {
+
 
 using Dimension = int;
 using Coord = Dimension;
@@ -29,11 +31,11 @@ struct Offset {
 
 class Road {
     struct HorizontalTag {
-        explicit HorizontalTag() = default;
+        HorizontalTag() = default;
     };
 
     struct VerticalTag {
-        explicit VerticalTag() = default;
+        VerticalTag() = default;
     };
 
 public:
@@ -73,7 +75,7 @@ private:
 
 class Building {
 public:
-    explicit Building(Rectangle bounds) noexcept
+    explicit Building(const Rectangle& bounds) noexcept
         : bounds_{bounds} {
     }
 
@@ -153,7 +155,7 @@ public:
         buildings_.emplace_back(building);
     }
 
-    void AddOffice(Office office);
+    void AddOffice(const Office& office);
 
 private:
     using OfficeIdToIndex = std::unordered_map<Office::Id, size_t, util::TaggedHasher<Office::Id>>;
@@ -171,7 +173,7 @@ class Game {
 public:
     using Maps = std::vector<Map>;
 
-    void AddMap(Map map);
+    void AddMap(const Map& map);
 
     const Maps& GetMaps() const noexcept {
         return maps_;
@@ -192,4 +194,10 @@ private:
     MapIdToIndex map_id_to_index_;
 };
 
+
+void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Road& road);
+void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Building& build);
+void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Office& office);
+void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Map& map);
+void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Game& game);
 }  // namespace model
