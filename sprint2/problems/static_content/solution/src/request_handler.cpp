@@ -26,6 +26,10 @@ namespace http_handler {
         std::string answ = json::serialize(json::value_from(maps_info));
         return answ;
     }
+    fs::path GetFilePath(const std::string& file_name) {
+        std::filesystem::path answ = file_name;
+        return answ;
+    }
     std::string GetFileType(std::string file_name) {
         std::string answ;
         auto it = file_name.rbegin();
@@ -63,18 +67,50 @@ namespace http_handler {
             return "audio/mpeg";
         return "application/octet-stream";
     }
-    bool IsFileExist(const std::filesystem::path& file_path) {
+    bool IsFileExist(const fs::path& file_path) {
         return std::filesystem::exists(file_path);
     }
-    http::file_body::value_type ReadFile(const std::string& file_path) {
+    bool IsAccessibleFile(fs::path file_path, fs::path base_path) {
+        file_path = fs::weakly_canonical(file_path);
+        base_path = fs::weakly_canonical(base_path);
+
+        for (auto b = base_path.begin(), p = file_path.begin(); b != base_path.end(); ++b, ++p) {
+            if (p == file_path.end() || *p != *b) {
+                return false;
+            }
+        }
+        return true;
+    }
+    http::file_body::value_type ReadFile(const fs::path& file_path) {
         http::file_body::value_type file;
         boost::system::error_code ec;
-        file.open(file_path.data(), beast::file_mode::read, ec);
+        file.open(file_path.string().data(), beast::file_mode::read, ec);
         if (ec)
           throw("Failed to open static-file: " + ec.message());
         return file;
     }
-
+    std::string UrlDeCode(const std::string& url_path) {
+        std::string answ;
+        auto it = url_path.begin();
+        while (it != url_path.end()) {
+            if (*it == '+') {
+                answ.push_back(' ');
+                ++it;
+                continue;
+            }
+            if (*it == '%') {
+                std::string temp;
+                temp.push_back(*(++it));
+                temp.push_back(*(++it));
+                char* p_end{};
+                answ.push_back(static_cast<char>(std::strtol(temp.data(), &p_end, 16)));
+                ++it;
+                continue;
+            }
+            answ.push_back(*(it++));
+        }
+        return answ;
+    }
 
     void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, MapInfo const& map_info) {
         jv = {

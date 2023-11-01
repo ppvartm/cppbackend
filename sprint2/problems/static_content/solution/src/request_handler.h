@@ -9,13 +9,17 @@ namespace http_handler {
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace json = boost::json;
+namespace fs = std::filesystem;
 
 json::value BadRequest();
 json::value MapNotFound();
 std::string GetMaps(const model::Game& game);
+fs::path GetFilePath(const std::string& file_name);
 std::string GetFileType(std::string file_name);
-bool IsFileExist(const std::filesystem::path& file_path);
-http::file_body::value_type ReadFile(const std::string& file_path);
+bool IsFileExist(const fs::path& file_path);
+bool IsAccessibleFile(fs::path file_path, fs::path base_path);
+http::file_body::value_type ReadFile(const fs::path& file_path);
+std::string UrlDeCode(const std::string& url_path);
 
 struct MapInfo {
     model::Map::Id id_;
@@ -47,7 +51,7 @@ public:
         return response;
     }
 
-    FileResponse MakeFileResponse(http::status status, std::string file_path, unsigned http_version,
+    FileResponse MakeFileResponse(http::status status, fs::path file_path, unsigned http_version,
         bool keep_alive,
         std::string content_type) {
         FileResponse response(status, http_version);
@@ -55,6 +59,10 @@ public:
         response.body() = ReadFile(file_path);
         response.prepare_payload();
         return response;
+    }
+
+    void SetFilePath(std::string file_path) {
+        path_ = "../../" + file_path;
     }
 
     RequestHandler(const RequestHandler&) = delete;
@@ -66,7 +74,7 @@ public:
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type ) {
         return this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
             };
-        const auto file_response = [&req, this](http::status status, std::string file_path, std::string content_type) {
+        const auto file_response = [&req, this](http::status status, fs::path file_path, std::string content_type) {
             return this->MakeFileResponse(status, file_path, req.version(), req.keep_alive(), content_type);
             };
 
@@ -94,29 +102,31 @@ public:
                 return;
             }
         }
-        if (((req.method_string() == "GET") || (req.method_string() == "HEAD")) &&
+        if (((req.method_string() == "GET") || (req.method_string() == "HEAD")) &&((
             (static_cast<std::string>(req.target()).substr(0, 4) != "/api") && 
             (static_cast<std::string>(req.target()) != "/favicon.ico") && 
-            (static_cast<std::string>(req.target()) != "/"))
+            (static_cast<std::string>(req.target()) != "/")) ||
+            (static_cast<std::string>(req.target()) == "/")
+            ))
         {
-            std::string file_path = "../static/" + static_cast<std::string>(req.target()).substr(1);
-            if (!IsFileExist(file_path)) {
-                send(text_response(http::status::not_found, "File not found", "text/plain"));
+            std::filesystem::path file_path;
+            if (static_cast<std::string>(req.target()) != "/");
+            file_path = path_.string() + UrlDeCode(static_cast<std::string>(req.target()));
+            if (static_cast<std::string>(req.target()) == "/")
+            file_path = path_.string() + "/index.html";
+            if (IsAccessibleFile(file_path, path_)) {
+                if (!IsFileExist(file_path)) {
+                     send(text_response(http::status::not_found, "File not found", "text/plain"));
+                     return;
+                }
+                std::string file_type = GetFileType(file_path.string());
+                send(file_response(http::status::ok, file_path, file_type));
                 return;
             }
-            std::string file_type = GetFileType(file_path);
-            send(file_response(http::status::ok, file_path, file_type));          
-            return;
-        }if (((req.method_string() == "GET") || (req.method_string() == "HEAD")) &&
-            (static_cast<std::string>(req.target()) == "/")) {
-            std::string file_path = "../static/index.html";
-            if (!IsFileExist(file_path)) {
-                send(text_response(http::status::not_found, "File not found", "text/plain"));
+            else {
+                send(text_response(http::status::bad_request, "Not access", "text/plain"));
                 return;
-            }
-            std::string file_type = GetFileType(file_path);
-            send(file_response(http::status::ok, file_path, file_type));
-            return;
+            }          
         }
        std::string answ = json::serialize(BadRequest());   //Невалидный запрос
        send(text_response(http::status::bad_request, answ, "application/json"));
@@ -125,7 +135,7 @@ public:
 
 private:
     model::Game& game_;
-   
+    std::filesystem::path path_;
  };
 
 }  // namespace http_handler

@@ -31,14 +31,14 @@ void RunWorkers(unsigned num_of_threads, const Fn& fn) {
 }  // namespace
 
 int main(int argc, const char* argv[]) {
-  /*  if (argc != 2) {
+    if (argc != 3) {
         std::cerr << "Usage: game_server <game-config-json>"sv << std::endl;
         return EXIT_FAILURE;
-    }*/
+    }
     try {
         // 1. Загружаем карту из файла и построить модель игры
-     //  model::Game game = json_loader::LoadGame(argv[1]);
-       model::Game game = json_loader::LoadGame("../data/config.json");
+       model::Game game = json_loader::LoadGame(argv[1]);
+      // model::Game game = json_loader::LoadGame("../data/config.json");
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
         net::io_context ioc(num_threads);
@@ -53,6 +53,7 @@ int main(int argc, const char* argv[]) {
 
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
         http_handler::RequestHandler handler{game};
+        handler.SetFilePath(argv[2]);
 
         // 5. Запустить обработчик HTTP-запросов, делегируя их обработчику запросов
         const auto address = net::ip::make_address("0.0.0.0");
