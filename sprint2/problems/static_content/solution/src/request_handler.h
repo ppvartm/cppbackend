@@ -51,13 +51,21 @@ public:
         return response;
     }
 
-    FileResponse MakeFileResponse(http::status status, fs::path file_path, unsigned http_version,
+    FileResponse GETMakeFileResponse(http::status status, fs::path file_path, unsigned http_version,
         bool keep_alive,
         std::string content_type) {
         FileResponse response(status, http_version);
         response.set(http::field::content_type, content_type);
         response.body() = ReadFile(file_path);
         response.prepare_payload();
+        return response;
+    }
+    FileResponse HEADMakeFileResponse(http::status status, fs::path file_path, unsigned http_version,
+        bool keep_alive,
+        std::string content_type) {
+        FileResponse response(status, http_version);
+        response.set(http::field::content_type, content_type);
+        response.content_length(0);
         return response;
     }
 
@@ -74,8 +82,11 @@ public:
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type ) {
         return this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
             };
-        const auto file_response = [&req, this](http::status status, fs::path file_path, std::string content_type) {
-            return this->MakeFileResponse(status, file_path, req.version(), req.keep_alive(), content_type);
+        const auto get_file_response = [&req, this](http::status status, fs::path file_path, std::string content_type) {
+            return this->GETMakeFileResponse(status, file_path, req.version(), req.keep_alive(), content_type);
+            };
+        const auto head_file_response = [&req, this](http::status status, fs::path file_path, std::string content_type) {
+            return this->HEADMakeFileResponse(status, file_path, req.version(), req.keep_alive(), content_type);
             };
 
         
@@ -122,7 +133,10 @@ public:
                      return;
                 }
                 std::string file_type = GetFileType(file_path.string());
-                send(file_response(http::status::ok, file_path, file_type));
+                if(req.method_string() == "GET")
+                  send(get_file_response(http::status::ok, file_path, file_type));
+                if(req.method_string() == "HEAD")
+                    send(head_file_response(http::status::ok, file_path, file_type));
                 return;
             }
             else {
