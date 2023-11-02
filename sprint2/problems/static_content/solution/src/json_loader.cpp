@@ -42,15 +42,16 @@ namespace json_loader {
         }
     }
 
-    model::Game LoadGame(const std::filesystem::path& json_path) {
+    model::Game LoadGame(std::filesystem::path json_path) {
 
         model::Game game;
-
+        json_path = std::filesystem::weakly_canonical(json_path);
         std::ifstream file;
-        file.open(json_path);
-        if (!file.is_open())
-            throw("Failed to open the game file");
-
+        if(std::filesystem::exists(json_path))
+          file.open(json_path);
+        else 
+            throw("Json doesn't exist");
+        
         std::stringstream ss;
         ss << file.rdbuf();
         std::string s = ss.str();

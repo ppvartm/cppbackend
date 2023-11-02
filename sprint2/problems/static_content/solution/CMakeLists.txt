@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(static_contetnt CXX)
+project(game_server CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -15,7 +15,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 
-add_executable(static_contetnt
+add_executable(game_server
 	src/main.cpp
 	src/http_server.cpp
 	src/http_server.h
@@ -29,4 +29,4 @@ add_executable(static_contetnt
 	src/request_handler.cpp
 	src/request_handler.h
 )
-target_link_libraries(static_contetnt PRIVATE Threads::Threads)
+target_link_libraries(game_server PRIVATE Threads::Threads)

@@ -9,6 +9,8 @@
 #include "request_handler.h"
 #include "http_server.h"
 
+#include <fstream>
+
 using namespace std::literals;
 namespace net = boost::asio;
 namespace sys = boost::system;
@@ -36,8 +38,18 @@ int main(int argc, const char* argv[]) {
         return EXIT_FAILURE;
     }
     try {
+        std::fstream log;
+        log.open("log.txt");
+
+        std::filesystem::path path1{ argv[1] };
+        path1 = std::filesystem::weakly_canonical(path1);
+        std::filesystem::path path2{ argv[2] };
+        path2 = std::filesystem::weakly_canonical(path2);
+        std::cout << path1 << "\n" << path2 << "\n";
+        log << path1 << "\n" << path2 << "\n";
+        log.close();
         // 1. Загружаем карту из файла и построить модель игры
-       model::Game game = json_loader::LoadGame(argv[1]);
+       model::Game game = json_loader::LoadGame(path1);
       // model::Game game = json_loader::LoadGame("../data/config.json");
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
@@ -51,9 +63,12 @@ int main(int argc, const char* argv[]) {
             }
             });
 
+        
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
         http_handler::RequestHandler handler{game};
-        handler.SetFilePath(argv[2]);
+        handler.SetFilePath(path2);
+
+       
 
         // 5. Запустить обработчик HTTP-запросов, делегируя их обработчику запросов
         const auto address = net::ip::make_address("0.0.0.0");

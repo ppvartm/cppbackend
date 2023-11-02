@@ -61,8 +61,8 @@ public:
         return response;
     }
 
-    void SetFilePath(std::string file_path) {
-        path_ = "../../" + file_path;
+    void SetFilePath(fs::path file_path) {
+        path_ = file_path;
     }
 
     RequestHandler(const RequestHandler&) = delete;
@@ -114,6 +114,8 @@ public:
             file_path = path_.string() + UrlDeCode(static_cast<std::string>(req.target()));
             if (static_cast<std::string>(req.target()) == "/")
             file_path = path_.string() + "/index.html";
+            file_path = fs::weakly_canonical(file_path);
+            std::cout << file_path << "\n";
             if (IsAccessibleFile(file_path, path_)) {
                 if (!IsFileExist(file_path)) {
                      send(text_response(http::status::not_found, "File not found", "text/plain"));
