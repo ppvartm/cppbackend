@@ -36,7 +36,7 @@ class Logger {
         oss<< std::put_time(std::gmtime(&t_c), "%Y") <<"_"
            << std::put_time(std::gmtime(&t_c), "%m") <<"_"
            << std::put_time(std::gmtime(&t_c), "%d");
-        return "var/log/sample_log_"+oss.str()+".log" ;
+        return "/var/log/sample_log_"+oss.str()+".log" ;
     }
 
     Logger() = default;
