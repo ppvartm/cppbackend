@@ -26,16 +26,16 @@ class Logger {
     auto GetTimeStamp() const {
         const auto now = GetTime();
         const auto t_c = std::chrono::system_clock::to_time_t(now);
-        return std::put_time(std::gmtime(&t_c), "%F %T");
+        return std::put_time(std::localtime(&t_c), "%F %T");
     }
 
     // Для имени файла возьмите дату с форматом "%Y_%m_%d"
     std::string GetFileTimeStamp() const {
         auto t_c = std::chrono::system_clock::to_time_t(GetTime());
         std::ostringstream oss;
-        oss<< std::put_time(std::gmtime(&t_c), "%Y") <<"_"
-           << std::put_time(std::gmtime(&t_c), "%m") <<"_"
-           << std::put_time(std::gmtime(&t_c), "%d");
+        oss<< std::put_time(std::localtime(&t_c), "%Y") <<"_"
+           << std::put_time(std::localtime(&t_c), "%m") <<"_"
+           << std::put_time(std::localtime(&t_c), "%d");
         return "/var/log/sample_log_"+oss.str()+".log" ;
     }
 
