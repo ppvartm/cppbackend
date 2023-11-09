@@ -10,7 +10,7 @@ RUN apt update && \
 
 COPY conanfile.txt /app/
 RUN mkdir /app/build && cd /app/build && \
-    conan install .. --build=missing
+    conan install .. --build=missing -s build_type=Release -s compiler.libcxx=libstdc++11
 
 
 COPY ./src /app/src

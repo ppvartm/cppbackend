@@ -104,7 +104,7 @@ int main(int argc, const char* argv[]) {
         std::cin.get();
     } catch (const std::exception& ex) {
         ServerStopLog(EXIT_FAILURE, ex.what());
-        std::cout << ex.what() << std::endl;
+      //  std::cout << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
     std::cin.get();
