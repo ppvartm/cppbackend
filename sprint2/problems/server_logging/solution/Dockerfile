@@ -25,7 +25,7 @@ FROM ubuntu:22.04 as run
 RUN groupadd -r www && useradd -r -g www www
 USER www
 
-COPY --from=build /app/build/Release/game_server /app/
+COPY --from=build /app/build/game_server /app/
 COPY ./data /app/data
 COPY ./static /app/static
 
