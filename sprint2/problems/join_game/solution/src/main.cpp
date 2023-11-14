@@ -71,7 +71,6 @@ int main(int argc, const char* argv[]) {
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
         net::io_context ioc(num_threads);
-        auto api_strand = net::make_strand(ioc);
 
         // 3. Добавляем асинхронный обработчик сигналов SIGINT и SIGTERM
         net::signal_set signals(ioc, SIGINT, SIGTERM);
@@ -83,7 +82,7 @@ int main(int argc, const char* argv[]) {
 
         
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
-        http_handler::RequestHandler handler{game, api_strand};
+        http_handler::RequestHandler handler {game};
         handler.SetFilePath(path2);
        // handler.SetFilePath("../static");
         http_handler::LoggingRequestHandler logging_handler(handler);
