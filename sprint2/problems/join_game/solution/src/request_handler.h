@@ -1,6 +1,7 @@
 #pragma once
 #include "http_server.h"
 #include "boost/json.hpp"
+#include <boost/asio/io_context.hpp>
 #include "model.h"
 #include <filesystem>
 #include "log.h"
@@ -50,9 +51,9 @@ struct MapInfo {
 
 class RequestHandler {
 public:
-    using Strand = net::strand<net::io_context::executor_type>;
-    explicit RequestHandler(model::Game& game, Strand api_strand)
-        : game_{ game }, strand_{api_strand} {
+    using Strand = boost::asio::strand<boost::asio::io_context::executor_type>;
+    explicit RequestHandler(model::Game& game, Strand& api_strand)
+        : game_{ game }, strand_(api_strand) {
     }
    
     StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
@@ -325,7 +326,7 @@ private:
     app::PlayerTokens tokens_;
     std::filesystem::path path_;
 
-    Strand strand_;
+    Strand& strand_;
  };
 
  template <typename RequestHandlerType>
