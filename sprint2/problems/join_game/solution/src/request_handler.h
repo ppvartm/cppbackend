@@ -8,6 +8,7 @@
 #include "ctime"
 #include <variant>
 #include "app.h"
+#include <mutex>
 
 namespace http_handler {
 
@@ -195,7 +196,7 @@ public:
                 send(response);
                 return response;
             }
-
+            
             auto userName = jv.as_object().at("userName").as_string();
             auto mapId = jv.as_object().at("mapId").as_string();
 
@@ -212,8 +213,10 @@ public:
                 return response;
             }
             //установка игрока
+            m.lock();
             std::shared_ptr<model::GameSession> gs = game_.FindGameSession(model::Map::Id(static_cast<std::string>(mapId)));
             auto players_token = tokens_.AddPlayer(players_.Add(std::make_shared<model::Dog>(static_cast<std::string>(userName)),gs));
+            m.unlock();
             jv = {
                 {"authToken", players_token},
                 {"playerId", (*tokens_.FindPlayerByToken(players_token)).GetDogId()}
@@ -252,7 +255,7 @@ public:
             //находим игрока, если у него есть доступ к игре (есть токен)
             if (auto player = tokens_.FindPlayerByToken(token_from_req)) {
                 auto gs = player->GetGameSession();
-
+                m.lock();
                 json::value name = {
                      {"name", gs->GetDogs().begin()->second->GetName()}
                 };
@@ -265,6 +268,7 @@ public:
                 }
                 auto response = json_text_response(std::move(answer), http::status::ok);
                 send(response);
+                m.unlock();
                 return response;
             }
             else {
@@ -325,7 +329,7 @@ private:
     app::Players players_;
     app::PlayerTokens tokens_;
     std::filesystem::path path_;
-
+    std::mutex m;
     Strand& strand_;
  };
 
