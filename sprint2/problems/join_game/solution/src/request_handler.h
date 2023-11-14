@@ -50,8 +50,9 @@ struct MapInfo {
 
 class RequestHandler {
 public:
-    explicit RequestHandler(model::Game& game)
-        : game_{game} {
+    using Strand = net::strand<net::io_context::executor_type>;
+    explicit RequestHandler(model::Game& game, Strand api_strand)
+        : game_{ game }, strand_{api_strand} {
     }
    
     StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
@@ -323,6 +324,8 @@ private:
     app::Players players_;
     app::PlayerTokens tokens_;
     std::filesystem::path path_;
+
+    Strand strand_;
  };
 
  template <typename RequestHandlerType>
