@@ -10,6 +10,7 @@
 #include "http_server.h"
 
 #include "log.h"
+#include "app.h"
 
 
 
@@ -42,11 +43,17 @@ void RunWorkers(unsigned num_of_threads, const Fn& fn) {
 
 
 int main(int argc, const char* argv[]) {
-    if (argc != 3) {
+   /* if (argc != 3) {
         std::cerr << "Usage: game_server <game-config-json>"sv << std::endl;
         return EXIT_FAILURE;
-    }
+    }*/
     try {
+
+       /* app::Players p;
+        model::Map::Id id{ static_cast<std::string>("2") };
+        p.FindByDogAndMapId(1, id);*/
+
+
         logging::add_common_attributes();
         logging::add_console_log(
             std::clog,
@@ -54,13 +61,13 @@ int main(int argc, const char* argv[]) {
             logging::keywords::auto_flush = true
         );
 
-        std::filesystem::path path1{ argv[1] };
-        path1 = std::filesystem::weakly_canonical(path1);
-        std::filesystem::path path2{ argv[2] };
-        path2 = std::filesystem::weakly_canonical(path2);
+       // std::filesystem::path path1{ argv[1] };
+        //path1 = std::filesystem::weakly_canonical(path1);
+      //  std::filesystem::path path2{ argv[2] };
+        //path2 = std::filesystem::weakly_canonical(path2);
         // 1. Загружаем карту из файла и построить модель игры
-        model::Game game = json_loader::LoadGame(path1);
-       //  model::Game game = json_loader::LoadGame("../data/config.json");
+       //    model::Game game = json_loader::LoadGame(path1);
+         model::Game game = json_loader::LoadGame("../data/config.json");
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
         net::io_context ioc(num_threads);
@@ -76,8 +83,8 @@ int main(int argc, const char* argv[]) {
         
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
         http_handler::RequestHandler handler{game};
-        handler.SetFilePath(path2);
-       // handler.SetFilePath("../static");
+       // handler.SetFilePath(path2);
+        handler.SetFilePath("../static");
         http_handler::LoggingRequestHandler logging_handler(handler);
 
        
