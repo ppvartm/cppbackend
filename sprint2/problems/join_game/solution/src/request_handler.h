@@ -196,8 +196,15 @@ public:
                 send(response);
                 return response;
             }
-            
-            auto userName = jv.as_object().at("userName").as_string();
+            std::string userName;
+            try {
+                 userName = jv.as_object().at("userName").as_string();
+            }
+            catch (...) {
+                auto response = json_text_response(EmptyNickname(), http::status::bad_request);
+                send(response);
+                return response;
+            }
             auto mapId = jv.as_object().at("mapId").as_string();
 
             //ошибка отсутствия карты
