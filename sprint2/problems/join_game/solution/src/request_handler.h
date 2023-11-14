@@ -197,15 +197,22 @@ public:
                 return response;
             }
             std::string userName;
+            std::string mapId;
             try {
                  userName = jv.as_object().at("userName").as_string();
+                 mapId = jv.as_object().at("mapId").as_string();
             }
             catch (...) {
                 auto response = json_text_response(EmptyNickname(), http::status::bad_request);
                 send(response);
                 return response;
             }
-            auto mapId = jv.as_object().at("mapId").as_string();
+            //ошибка пустого имени
+            if (userName == "") {
+                auto response = json_text_response(EmptyNickname(), http::status::bad_request);
+                send(response);
+                return response;
+            }
 
             //ошибка отсутствия карты
             if (!game_.FindMap(model::Map::Id(static_cast<std::string>(mapId)))) {
@@ -213,12 +220,7 @@ public:
                 send(response);
                 return response;
            }
-            //ошибка пустого имени
-            if (userName == "") {
-                auto response = json_text_response(EmptyNickname(), http::status::bad_request);
-                send(response);
-                return response;
-            }
+
             //установка игрока
             m.lock();
             std::shared_ptr<model::GameSession> gs = game_.FindGameSession(model::Map::Id(static_cast<std::string>(mapId)));
@@ -252,7 +254,11 @@ public:
             (static_cast<std::string>(req.target()) == "/api/v1/game/players")) {
 
             auto auth = req.base()["Authorization"].to_string();
-            if ((auth == "") || auth.substr(7).size() != 32) {
+            try {
+                if (auth.substr(7).size() != 32)
+                    throw;
+            }
+            catch(...){
                 auto response = json_text_response(AuthorizationMissing(), http::status::unauthorized);
                 send(response);
                 return response;

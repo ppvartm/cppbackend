@@ -38,7 +38,7 @@ namespace http_handler {
     }
     json::value AuthorizationMissing() {
         json::value val = {
-            {"code", "invalidTocken"},
+            {"code", "invalidToken"},
             {"message","Authorization header is missing"}};
         return val;
     }
