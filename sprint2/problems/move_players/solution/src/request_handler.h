@@ -30,6 +30,8 @@ json::value NotPostRequest();
 json::value AuthorizationMissing();
 json::value PlayerNotFound();
 json::value InvalidMethod();
+json::value InvalidContentType(); 
+json::value ErrorParseAction();
 
 std::string GetMaps(const model::Game& game);
 
@@ -86,7 +88,13 @@ public:
         }
         auto token_from_req = auth.substr(7);
         if (CheckAuthorization(token_from_req)) {
-           auto response = json_text_response(func(token_from_req), http::status::ok);
+            auto answer = func(token_from_req);
+            if (answer == ErrorParseAction()){
+                auto response = json_text_response(std::move(answer), http::status::bad_request);
+                send(response);
+                return response;
+            }
+           auto response = json_text_response(std::move(answer), http::status::ok);
            send(response);
            return response;
         }
@@ -329,6 +337,66 @@ public:
          }
          return std::nullopt;
     }
+    template <typename Body, typename Allocator, typename Send>
+    std::optional<StringResponse> API_MovePlayer_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+        const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
+            std::string answ = json::serialize(jv);
+            StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
+            response.set(http::field::cache_control, "no-cache");
+            return response;
+            };
+
+        if ((req.method_string() == "POST") &&
+            (static_cast<std::string>(req.target()) == "/api/v1/game/player/action")) {
+            std::cout << "IM here\n";
+            try {
+                if (req.base()["Content-Type"].to_string() != "application/json")
+                    throw std::exception();
+            }
+            catch (...) {
+                auto response = json_text_response(InvalidContentType(), http::status::bad_request);
+                send(response);
+                return response;
+            }
+
+            return API_PerfomActionWithToken(req, send, [this, &req](const app::Token& token) {
+                auto player = this->tokens_.FindPlayerByToken(token);
+                double dog_speed = this->tokens_.FindPlayerByToken(token)->GetGameSession()->GetDogSpeed();
+
+                json::error_code ec;
+                json::value jv = json::parse(req.body(), ec);
+                if (ec || !jv.as_object().contains("move"))
+                    return ErrorParseAction();
+                
+                std::string dir = static_cast<std::string>(jv.as_object().at("move").as_string());
+                std::lock_guard lg(m);
+                if (dir == "L")
+                    player->SetDogSpeed( -dog_speed,0. );
+                else if (dir == "R")
+                    player->SetDogSpeed( dog_speed,0. );
+                else if (dir == "U")
+                    player->SetDogSpeed( 0., -dog_speed );
+                else if (dir == "D")
+                    player->SetDogSpeed( 0., dog_speed );
+                else if (dir == "")
+                    player->SetDogSpeed( 0.,0. );
+                else {
+                    return ErrorParseAction();
+                }
+                json::value answer = json::object();
+                return answer;
+            });
+
+        }
+        else if (static_cast<std::string>(req.target()) == "/api/v1/game/player/action") {
+            auto response = json_text_response(NotPostRequest(), http::status::method_not_allowed);
+            response.set(http::field::allow, "POST");
+            send(response);
+            return response;
+        }
+        return std::nullopt;
+    }
+
 
     template <typename Body, typename Allocator, typename Send>
     std::variant<StringResponse, FileResponse> operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
@@ -363,6 +431,9 @@ public:
 
         if (auto api_state_game = API_GameState_RequestHand(req, send))
             return *api_state_game;
+
+        if (auto api_move_players = API_MovePlayer_RequestHand(req, send))
+            return *api_move_players;
 
 
        std::string answ = json::serialize(BadRequest());   //Невалидный запрос

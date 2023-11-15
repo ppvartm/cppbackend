@@ -20,11 +20,12 @@ namespace app {
         model::Dog::Id GetDogId() {
             return dog_->GetId();
         }
-
         const std::shared_ptr<model::GameSession> GetGameSession() const {
             return game_session_;
         }
-
+        void SetDogSpeed(model::DogSpeedFromJson speed_horizontal, model::DogSpeedFromJson speed_vertical) {
+            dog_->SetSpeed({speed_horizontal, speed_vertical});
+        }
 	private:
         std::shared_ptr<model::Dog> dog_;
 		std::shared_ptr<model::GameSession> game_session_;

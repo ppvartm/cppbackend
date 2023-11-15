@@ -42,6 +42,11 @@ namespace json_loader {
         }
     }
 
+    void SetDogSpeed(const json::object& json_map, model::Map& map) {
+        if (json_map.contains("dogSpeed"))
+            map.SetDogSpeed(json_map.at("dogSpeed").as_double());
+    }
+
     model::Game LoadGame(std::filesystem::path json_path) {
 
         model::Game game;
@@ -62,14 +67,24 @@ namespace json_loader {
             throw("Failed to parse json: " + ec.message());
    
         auto maps = value.as_object().at("maps").as_array(); 
+        
+        bool is_defaultDogSpeed_exist = false;
+        model::DogSpeedFromJson defaultDogSpeed = 0;
+        if (value.as_object().contains("defaultDogSpeed")) {
+            is_defaultDogSpeed_exist = true;
+            defaultDogSpeed = value.as_object().at("defaultDogSpeed").as_double();
+        }
 
         for (int j = 0; j < maps.size(); ++j) {
 
             model::Map map = MakeMap(maps.at(j).as_object());
+            if (is_defaultDogSpeed_exist)
+                map.SetDogSpeed(defaultDogSpeed);
 
             AddRoads(maps.at(j).as_object(), map);
             AddBuildings(maps.at(j).as_object(), map);
             AddOffices(maps.at(j).as_object(), map);
+            SetDogSpeed(maps.at(j).as_object(), map);
             game.AddMap(map);
           
             

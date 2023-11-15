@@ -11,6 +11,7 @@ namespace model {
 
 using Dimension = long long int;
 using Coord = Dimension;
+using DogSpeedFromJson = double;
 ;
 
 enum class Direction {NORTH, SOUTH, WEST, EAST};
@@ -170,6 +171,14 @@ public:
 
     void AddOffice(const Office& office);
 
+    void SetDogSpeed(DogSpeedFromJson dog_speed) {
+        dog_speed_ = dog_speed;
+    }
+
+    const DogSpeedFromJson GetDogSpeed() const {
+        return dog_speed_;
+    }
+
 private:
     using OfficeIdToIndex = std::unordered_map<Office::Id, size_t, util::TaggedHasher<Office::Id>>;
 
@@ -180,6 +189,8 @@ private:
 
     OfficeIdToIndex warehouse_id_to_index_;
     Offices offices_;
+
+    DogSpeedFromJson dog_speed_ = 1.;
 };
 
 class Dog {
@@ -217,6 +228,10 @@ public:
             return "L";
         if (temp == Direction::EAST)
             return "R";
+    }
+
+    void SetSpeed(Speed speed) {
+        speed_ = speed;
     }
 private:
     Position pos_ = {0, 0};
@@ -258,7 +273,10 @@ public:
     const std::multimap<std::string, std::shared_ptr<Dog>>& GetDogs() const {
         return dogs_;
     }
-   
+    const DogSpeedFromJson GetDogSpeed() const {
+        return map_.GetDogSpeed();
+    }
+
 private:
     std::multimap<std::string, std::shared_ptr<Dog>> dogs_;
     const Map& map_;

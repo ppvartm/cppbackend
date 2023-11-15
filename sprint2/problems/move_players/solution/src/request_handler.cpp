@@ -54,6 +54,18 @@ namespace http_handler {
            {"message","Invalid method"} };
         return val;
     }
+    json::value InvalidContentType() {
+        json::value val = {
+                   {"code", "invalidArgument"},
+                   {"message","Invalid content type"} };
+        return val;
+    }
+    json::value ErrorParseAction() {
+        json::value val = {
+           {"code", "invalidArgument"},
+           {"message","Failed to parse action"} };
+        return val;
+    }
 
     std::string GetMaps(const model::Game& game) {
         std::vector<MapInfo> maps_info;
