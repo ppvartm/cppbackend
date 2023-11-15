@@ -254,14 +254,14 @@ public:
             auto auth = req.base()["Authorization"].to_string();
             try {
                 if (auth.substr(7).size() != 32)
-                    throw;
+                    throw std::exception();
             }
             catch(...){
                 auto response = json_text_response(AuthorizationMissing(), http::status::unauthorized);
                 send(response);
                 return response;
-           }
-            auto token_from_req = req.base()["Authorization"].to_string().substr(7);
+            }
+            auto token_from_req = auth.substr(7);
             //находим игрока, если у него есть доступ к игре (есть токен)
             if (auto player = tokens_.FindPlayerByToken(token_from_req)) {
                 m.lock();
@@ -295,6 +295,70 @@ public:
         }
         return std::nullopt;
     }
+    template <typename Body, typename Allocator, typename Send>
+    std::optional<StringResponse> API_GameState_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+
+        const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
+            std::string answ = json::serialize(jv);
+            StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
+            response.set(http::field::cache_control, "no-cache");
+            return response;
+            };
+
+        if (((req.method_string() == "GET") || (req.method_string() == "HEAD")) &&
+            (static_cast<std::string>(req.target()) == "/api/v1/game/state")) {
+
+            auto auth = req.base()["Authorization"].to_string();
+            try {
+                if (auth.substr(7).size() != 32)
+                    throw std::exception();
+            }
+            catch (...) {
+                auto response = json_text_response(AuthorizationMissing(), http::status::unauthorized);
+                send(response);
+                return response;
+            }
+            auto token_from_req = auth.substr(7);
+            if (auto player = tokens_.FindPlayerByToken(token_from_req)) {
+                auto gs = player->GetGameSession();
+                json::value information_about_dog = {
+                    {"pos", std::vector<double>({gs->GetDogs().begin()->second->GetPosition().x, gs->GetDogs().begin()->second->GetPosition().y})},
+                    {"speed",std::vector<double>({gs->GetDogs().begin()->second->GetSpeed().s_x, gs->GetDogs().begin()->second->GetSpeed().s_y}) },
+                    {"dir", gs->GetDogs().begin()->second->GetDirectionToString()}
+                };
+                json::value players = {
+                    {std::to_string(gs->GetDogs().begin()->second->GetId()), information_about_dog}
+                };
+                for (auto p = (gs->GetDogs().begin()); p != gs->GetDogs().end(); ++p) {
+                    information_about_dog = {
+                       {"pos", {p->second->GetPosition().x, p->second->GetPosition().y}},
+                       {"speed",std::vector<double>({p->second->GetSpeed().s_x, p->second->GetSpeed().s_y}) },
+                       {"dir", p->second->GetDirectionToString()}
+                    };
+                    players.get_object().emplace(std::to_string(p->second->GetId()), information_about_dog);
+                }
+                json::value answer = {
+                    { "players", players }
+                };
+                auto response = json_text_response(std::move(answer), http::status::ok);
+                send(response);
+                return response;
+            }
+            else {
+                auto response = json_text_response(PlayerNotFound(), http::status::unauthorized);
+                send(response);
+                return response;
+            }
+        }
+         else if (static_cast<std::string>(req.target()) == "/api/v1/game/state") {
+            auto response = json_text_response(InvalidMethod(), http::status::method_not_allowed);
+            response.set(http::field::allow, "GET, HEAD");
+            send(response);
+            return response;
+           
+         }
+         return std::nullopt;
+    }
 
     template <typename Body, typename Allocator, typename Send>
     std::variant<StringResponse, FileResponse> operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
@@ -326,6 +390,9 @@ public:
 
         if (auto api_players_list_game = API_PlayersList_RequestHand(req, send))
             return *api_players_list_game;
+
+        if (auto api_state_game = API_GameState_RequestHand(req, send))
+            return *api_state_game;
 
 
        std::string answ = json::serialize(BadRequest());   //Невалидный запрос

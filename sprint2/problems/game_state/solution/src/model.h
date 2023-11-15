@@ -11,13 +11,18 @@ namespace model {
 
 using Dimension = long long int;
 using Coord = Dimension;
-using Speed = double;
+;
 
 enum class Direction {NORTH, SOUTH, WEST, EAST};
 
 struct Position {
     double x;
     double y;
+};
+
+struct Speed {
+    double s_x;
+    double s_y;
 };
 
 struct Point {
@@ -180,8 +185,12 @@ private:
 class Dog {
 public:
     using Id = uint64_t;
-    Dog(std::string name) :name_(name), id_(general_id_++) {};
-
+    Dog(std::string name) :speed_({0,0}), dir_(Direction::NORTH), name_(name), id_(general_id_++) {
+    
+    };
+    void SetPosition(Position pos) {
+        pos_ = pos;
+    }
     const Id GetId() const {
         return id_;
     }
@@ -189,10 +198,30 @@ public:
         return name_;
     }
 
+    const Position GetPosition() const {
+        return pos_;
+    }
+    const Speed GetSpeed() const {
+        return speed_;
+    }
+    const Direction GetDirection() const {
+        return dir_;
+    }
+    const std::string GetDirectionToString() const {
+        Direction temp = GetDirection();
+        if (temp == Direction::NORTH)
+            return "U";
+        if (temp == Direction::SOUTH)
+            return "D";
+        if (temp == Direction::WEST)
+            return "L";
+        if (temp == Direction::EAST)
+            return "R";
+    }
 private:
-    Position pos_;
-    Direction dir_;
+    Position pos_ = {0, 0};
     Speed speed_;
+    Direction dir_;
 
     std::string name_;
     Id id_;
@@ -211,6 +240,18 @@ public:
     }
 
     void AddDog(std::shared_ptr<Dog> dog) {
+        srand(time(0));
+        auto road = map_.GetRoads()[rand() % map_.GetRoads().size()];
+        Position pos;
+        if (road.IsVertical()) {
+            pos.x = road.GetStart().x;
+            pos.y = rand() % (road.GetEnd().y - road.GetEnd().y + 1) + road.GetEnd().y;
+        }
+        else {
+            pos.y = road.GetStart().y;
+            pos.x = rand() % (road.GetEnd().x - road.GetEnd().x + 1) + road.GetEnd().x;
+        }
+        dog->SetPosition(pos);
         dogs_.insert({dog->GetName(),dog});
     }
 
