@@ -72,12 +72,18 @@ namespace app {
                     if (new_position.x < road.GetStart().x - 0.4)
                         answer.x = road.GetStart().x - 0.4;
                 }
+
+                if (road.IsHorizontal() && (dog_->GetDirection() == model::Direction::WEST || dog_->GetDirection() == model::Direction::EAST))
+                    return answer;
+                if (road.IsVertical() && (dog_->GetDirection() == model::Direction::SOUTH || dog_->GetDirection() == model::Direction::NORTH))
+                    return answer;
+              /*
                 if ((answer.x == new_position.x) && (answer.y == new_position.y))
                     return new_position;
                 if (roads.size() == 1)
                     return answer;
                 else if (&road == &(*roads.begin()))
-                    answer = new_position;
+                    answer = new_position;*/
             }
             return answer;
         }
