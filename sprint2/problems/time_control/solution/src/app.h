@@ -27,14 +27,9 @@ namespace app {
         }
         void SetDogSpeed(model::DogSpeedFromJson speed_horizontal, model::DogSpeedFromJson speed_vertical) {
             dog_->SetSpeed({speed_horizontal, speed_vertical});
-            if (speed_horizontal == 0 && speed_vertical > 0)
-                dog_->SetDirection("D");
-            if (speed_horizontal == 0 && speed_vertical < 0)
-                dog_->SetDirection("U");
-            if (speed_horizontal <=  0 && speed_vertical == 0)
-                dog_->SetDirection("L");
-            if (speed_horizontal > 0 && speed_vertical == 0)
-                dog_->SetDirection("R");
+        }
+        void SetDogDirection(const std::string& dir) {
+            dog_->SetDirection(dir);
         }
         std::vector<model::Road> GetRoadsWithDog() {
             std::vector<model::Road> valid_roads;

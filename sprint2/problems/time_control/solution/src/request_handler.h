@@ -371,15 +371,24 @@ public:
                 std::lock_guard lg(m);
                 if (dir == "L") {
                     player->SetDogSpeed(-dog_speed, 0.);
+                    player->SetDogDirection(dir);
                 }
-                else if (dir == "R")
-                    player->SetDogSpeed( dog_speed,0. );
-                else if (dir == "U")
-                    player->SetDogSpeed( 0., -dog_speed );
-                else if (dir == "D")
-                    player->SetDogSpeed( 0., dog_speed );
-                else if (dir == "")
-                    player->SetDogSpeed( 0.,0. );
+                else if (dir == "R") {
+                    player->SetDogSpeed(dog_speed, 0.);
+                    player->SetDogDirection(dir);
+                }
+                else if (dir == "U") {
+                    player->SetDogSpeed(0., -dog_speed);
+                    player->SetDogDirection(dir);
+                }
+                else if (dir == "D") {
+                    player->SetDogSpeed(0., dog_speed);
+                    player->SetDogDirection(dir);
+                }
+                else if (dir == "") {
+                    player->SetDogSpeed(0., 0.);
+                    player->SetDogDirection("U");
+                }
                 else {
                     return ErrorParseAction();
                 }
