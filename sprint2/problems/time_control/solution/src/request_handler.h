@@ -111,7 +111,9 @@ public:
     template <typename Body, typename Allocator, typename Send>
     std::optional<StringResponse> GetAPI_info_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type) {
-            return this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
+           auto response  = this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
+           response.set(http::field::cache_control, "no-cache");
+           return response;
             };
         if ((req.method_string() == "GET") &&
             (static_cast<std::string>(req.target()) == "/api/v1/maps"))
@@ -492,6 +494,7 @@ public:
 
        std::string answ = json::serialize(BadRequest());   //Невалидный запрос
        auto response = text_response(http::status::bad_request, answ, "application/json");
+       response.set(http::field::cache_control, "no-cache");
        send(response);
        return response;
     }
