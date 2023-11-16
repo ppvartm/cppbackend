@@ -48,7 +48,6 @@ int main(int argc, const char* argv[]) {
         return EXIT_FAILURE;
     }
     try {
-
        /* app::Players p;
         model::Map::Id id{ static_cast<std::string>("2") };
         p.FindByDogAndMapId(1, id);*/
