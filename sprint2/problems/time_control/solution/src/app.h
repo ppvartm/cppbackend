@@ -72,7 +72,8 @@ namespace app {
                     if (new_position.x < road.GetStart().x - 0.4)
                         answer.x = road.GetStart().x - 0.4;
                 }
-                
+                if (roads.size() == 1)
+                    return answer;
                 if (answer.x == new_position.x && answer.y == new_position.y)
                     return answer;
                 if (road.IsHorizontal() && (dog_->GetDirection() == model::Direction::WEST || dog_->GetDirection() == model::Direction::EAST))
