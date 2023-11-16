@@ -423,10 +423,26 @@ public:
                 send(response);
                 return response;
             }
+            if (!jv.as_object().at("timeDelta").if_int64()) {
+                auto response = json_text_response(ErrorParseTick(), http::status::bad_request);
+                send(response);
+                return response;
+            }
+            
+
+
             double time_delta = jv.as_object().at("timeDelta").as_int64(); //время в миллисикундах
+            m.lock();
             players_.MoveAllDogs(time_delta);
+            m.unlock();
             json::value answer = json::object();
             auto response = json_text_response(std::move(answer), http::status::ok);
+            send(response);
+            return response;
+        }
+        else if (static_cast<std::string>(req.target()) == "/api/v1/game/tick") {
+            auto response = json_text_response(NotPostRequest(), http::status::method_not_allowed);
+            response.set(http::field::allow, "POST");
             send(response);
             return response;
         }
