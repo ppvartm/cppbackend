@@ -81,7 +81,7 @@ namespace app {
                     return new_position;
                 if (roads.size() == 1)
                     return answer;
-                else if (&road == roads.begin()._Ptr)
+                else if (&road == &(*roads.begin()))
                     answer = new_position;
             }
             return answer;
