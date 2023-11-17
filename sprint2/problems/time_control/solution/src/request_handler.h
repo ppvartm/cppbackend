@@ -124,7 +124,7 @@ public:
             return response;
         }
         if ((req.method_string() == "GET") &&
-            (static_cast<std::string>(req.target()).substr(0, 16) == "/api/v1/maps/map"))
+            (static_cast<std::string>(req.target()).substr(0, 13) == "/api/v1/maps/"))
         {
             std::string id = static_cast<std::string>(req.target()).substr(13); //получаем номер карты
             auto map = game_.FindMap(model::Map::Id(id)); //ищем карту
