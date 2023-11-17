@@ -35,14 +35,26 @@ namespace app {
             std::vector<model::Road> valid_roads;
             for (auto& road : game_session_->GetMap().GetRoads()) {
                 if (road.IsHorizontal()) {
-                    if ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().y >= road.GetStart().y - 0.4) &&
-                        (dog_->GetPosition().x <= road.GetEnd().x + 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4))
-                        valid_roads.push_back(road);
+                    if((dog_->GetPosition().y >= road.GetStart().y - 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4)&&
+                        ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().x <= road.GetEnd().x + 0.4) ||
+                         (dog_->GetPosition().x <= road.GetStart().x + 0.4 && dog_->GetPosition().x >= road.GetEnd().x - 0.4)))
+                            valid_roads.push_back(road);
+                    /*if (((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().y >= road.GetStart().y - 0.4) &&
+                        (dog_->GetPosition().x <= road.GetEnd().x + 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4))||
+                        ())
+                        */
                 }
                 else if (road.IsVertical()) {
+                    if ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().x <= road.GetEnd().x + 0.4) &&
+                        ((dog_->GetPosition().y >= road.GetStart().y - 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4) ||
+                            (dog_->GetPosition().y <= road.GetStart().y + 0.4 && dog_->GetPosition().y >= road.GetEnd().y - 0.4)))
+                        valid_roads.push_back(road);
+
+
+                /*else if (road.IsVertical()) {
                     if ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().y >= road.GetStart().y - 0.4) &&
                         (dog_->GetPosition().x <= road.GetEnd().x + 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4))
-                        valid_roads.push_back(road);
+                        valid_roads.push_back(road);*/
                 }
             }
                     return valid_roads;
@@ -53,24 +65,42 @@ namespace app {
             auto answer = new_position;
             for (auto& road : roads) {
                 if (road.IsHorizontal()) {
-                    if (new_position.x < road.GetStart().x - 0.4)
-                        answer.x = road.GetStart().x - 0.4;
-                    if (new_position.x > road.GetEnd().x + 0.4)
-                        answer.x = road.GetEnd().x + 0.4;
                     if (new_position.y > road.GetStart().y + 0.4)
                         answer.y = road.GetStart().y + 0.4;
                     if (new_position.y < road.GetStart().y - 0.4)
                         answer.y = road.GetStart().y - 0.4;
+
+                    if (road.GetStart().x < road.GetEnd().x) {
+                        if (new_position.x < road.GetStart().x - 0.4)
+                            answer.x = road.GetStart().x - 0.4;
+                        if (new_position.x > road.GetEnd().x + 0.4)
+                            answer.x = road.GetEnd().x + 0.4;
+                    }
+                    else {
+                        if (new_position.x > road.GetStart().x + 0.4)
+                            answer.x = road.GetStart().x + 0.4;
+                        if (new_position.x < road.GetEnd().x - 0.4)
+                            answer.x = road.GetEnd().x - 0.4;
+                    }
                 }
                 else {
-                    if (new_position.y < road.GetStart().y - 0.4)
-                        answer.y = road.GetStart().y - 0.4;
-                    if (new_position.y > road.GetEnd().y + 0.4)
-                        answer.y = road.GetEnd().y + 0.4;
                     if (new_position.x > road.GetStart().x + 0.4)
                         answer.x = road.GetStart().x + 0.4;
                     if (new_position.x < road.GetStart().x - 0.4)
                         answer.x = road.GetStart().x - 0.4;
+
+                    if (road.GetStart().y < road.GetEnd().y) {
+                        if (new_position.y < road.GetStart().y - 0.4)
+                            answer.y = road.GetStart().y - 0.4;
+                        if (new_position.y > road.GetEnd().y + 0.4)
+                            answer.y = road.GetEnd().y + 0.4; 
+                    }
+                    else {
+                        if (new_position.y > road.GetStart().y + 0.4)
+                            answer.y = road.GetStart().y + 0.4;
+                        if (new_position.y < road.GetEnd().y - 0.4)
+                            answer.y = road.GetEnd().y - 0.4;
+                    }
                 }
                 if (roads.size() == 1)
                     return answer;
