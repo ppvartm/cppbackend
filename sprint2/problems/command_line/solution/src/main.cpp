@@ -1,6 +1,7 @@
 //#include "sdk.h"
 #include <boost/program_options.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/asio/io_context.hpp>
 #include <iostream>
 #include <thread>
@@ -126,8 +127,10 @@ int main(int argc, const char* argv[]) {
             }
             });
 
+
+        net::strand strand = net::make_strand(ioc);
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
-        http_handler::RequestHandler handler {game};
+        http_handler::RequestHandler handler {game, strand};
         handler.SetFilePath(path2);
         //handler.SetFilePath("../static");
         http_handler::LoggingRequestHandler logging_handler(handler);
