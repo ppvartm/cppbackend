@@ -11,7 +11,7 @@
 
 #include "log.h"
 #include "app.h"
-
+#include "timer.h"
 
 
 
@@ -76,22 +76,21 @@ std::optional<Args> ParseCommandLine(int argc, const char* const argv[]) {
     if (!vm.contains("randomize-spawn-points"s)) {
        // args.random_spawn = "";
     }
+    if (!vm.contains("tick-period"s)) {
+
+    }
+
     return args;
   }
 }  // namespace
 
 
 int main(int argc, const char* argv[]) {
- /*   if (argc != 3) {
-        std::cerr << "Usage: game_server <game-config-json>"sv << std::endl;
-        return EXIT_FAILURE;
-    }*/
+    //if (argc != 3) {
+    //    std::cerr << "Usage: game_server <game-config-json>"sv << std::endl;
+    //    return EXIT_FAILURE;
+    //}
     try {
-       /* app::Players p;
-        model::Map::Id id{ static_cast<std::string>("2") };
-        p.FindByDogAndMapId(1, id);*/
-
-
         logging::add_common_attributes();
         logging::add_console_log(
             std::clog,
@@ -103,6 +102,7 @@ int main(int argc, const char* argv[]) {
         std::cout << args->config_file_path << "\n";
         std::cout << args->static_dir_path << "\n";
         std::cout << args->random_spawn << "\n";
+        std::cout << args->tick_period << "\n";
 
 
         
@@ -113,9 +113,9 @@ int main(int argc, const char* argv[]) {
         if (!std::filesystem::exists(path2))
             throw std::runtime_error("Static files dir doesn't exist");
 
-      //  std::filesystem::path path1{ argv[1] };
+       // std::filesystem::path path1{ argv[1] };
         path1 = std::filesystem::weakly_canonical(path1);
-      //  std::filesystem::path path2{ argv[2] };
+       // std::filesystem::path path2{ argv[2] };
         path2 = std::filesystem::weakly_canonical(path2);
      //    1. Загружаем карту из файла и построить модель игры
         model::Game game = json_loader::LoadGame(path1);
@@ -126,6 +126,8 @@ int main(int argc, const char* argv[]) {
       //   2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
         net::io_context ioc(num_threads);
+      //  2.1. Добавляем strand
+        auto api_strand = net::make_strand(ioc);
 
        //  3. Добавляем асинхронный обработчик сигналов SIGINT и SIGTERM
         net::signal_set signals(ioc, SIGINT, SIGTERM);
@@ -133,28 +135,33 @@ int main(int argc, const char* argv[]) {
             if (!ec) {
                 ioc.stop();
             }
-            });
+        });
 
-        
       //   4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
-        http_handler::RequestHandler handler {game};
+        http_handler::RequestHandler handler {game, api_strand};
         handler.SetFilePath(path2);
-      //  handler.SetFilePath("../static");
+       // handler.SetFilePath("../static");
         http_handler::LoggingRequestHandler logging_handler(handler);
-
+        
        
 
        //  5. Запустить обработчик HTTP-запросов, делегируя их обработчику запросов
         const auto address = net::ip::make_address("0.0.0.0");
         constexpr net::ip::port_type port = 8080;
-  /*      http_server::ServeHttp(ioc, {address, port}, [&handler](auto&& req, auto&& send) {
-            handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
-        });*/
-
         http_server::ServeHttp(ioc, { address, port }, [&logging_handler](auto&& req, auto&& send) {
             logging_handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
             });
         
+        // 5.1. Добавляем автоматическое обновление времени, если это нужно
+        std::shared_ptr<Timer::Ticker> ticker;
+        if (args->tick_period != "") {
+            handler.SetAutomaticTick();
+              ticker = std::make_shared<Timer::Ticker>(api_strand, std::chrono::milliseconds(std::stoi(args->tick_period)),
+                 [&handler](std::chrono::milliseconds delta) {
+                     handler.Tick(delta); 
+                 });
+              ticker->Start();
+        }
 
       //   Эта надпись сообщает тестам о том, что сервер запущен и готов обрабатывать запросы
         std::cout << "Server has started..."sv << std::endl;
@@ -167,8 +174,7 @@ int main(int argc, const char* argv[]) {
         std::cin.get();
     } catch (const std::exception& ex) {
         ServerStopLog(EXIT_FAILURE, ex.what());
-      //  std::cout << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
-    std::cin.get();
+   // std::cin.get();
 }
