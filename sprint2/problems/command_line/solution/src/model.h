@@ -258,7 +258,7 @@ private:
 class GameSession {
 public:
 
-    GameSession(const Map& map, bool is_rand_spawn):map_(map), is_rand_spawn_(is_rand_spawn){}
+    GameSession(const Map& map):map_(map){}
 
     Map::Id GetMapId() const {
         return map_.GetId();
@@ -267,20 +267,16 @@ public:
     void AddDog(std::shared_ptr<Dog> dog) {
         srand(time(0));
         Position pos;
-        if (!is_rand_spawn_) {
-            pos = { static_cast<double>(map_.GetRoads().begin()->GetStart().x),static_cast<double>(map_.GetRoads().begin()->GetStart().y) };
+        pos = { static_cast<double>(map_.GetRoads().begin()->GetStart().x),static_cast<double>(map_.GetRoads().begin()->GetStart().y) };
+       /* auto road = map_.GetRoads()[rand() % map_.GetRoads().size()];
+        if (road.IsVertical()) {
+            pos.x = road.GetStart().x;
+            pos.y = rand() % (road.GetEnd().y - road.GetEnd().y + 1) + road.GetEnd().y;
         }
         else {
-             auto road = map_.GetRoads()[rand() % map_.GetRoads().size()];
-             if (road.IsVertical()) {
-                 pos.x = road.GetStart().x;
-                 pos.y = rand() % (road.GetEnd().y - road.GetEnd().y + 1) + road.GetEnd().y;
-             }
-             else {
-                 pos.y = road.GetStart().y;
-                 pos.x = rand() % (road.GetEnd().x - road.GetEnd().x + 1) + road.GetEnd().x;
-             }
-        }
+            pos.y = road.GetStart().y;
+            pos.x = rand() % (road.GetEnd().x - road.GetEnd().x + 1) + road.GetEnd().x;
+        }*/
         dog->SetPosition(pos);
         dogs_.insert({dog->GetName(),dog});
     }
@@ -299,8 +295,6 @@ public:
 private:
     std::multimap<std::string, std::shared_ptr<Dog>> dogs_;
     const Map& map_;
-
-    bool is_rand_spawn_ = false;
 };
 
 class Game {
@@ -325,12 +319,9 @@ public:
             if (p->GetMapId() == id)
                 return p;
 
-        return  game_sessions_.emplace_back(std::make_shared<GameSession>(*FindMap(id), is_rand_game_spawn_));
+        return  game_sessions_.emplace_back(std::make_shared<GameSession>(*FindMap(id)));
     }
 
-    void SetRandomSpawn() {
-        is_rand_game_spawn_ = true;
-    }
 
 private:
     using MapIdHasher = util::TaggedHasher<Map::Id>;
@@ -339,8 +330,6 @@ private:
     GameSessions game_sessions_;
     Maps maps_;
     MapIdToIndex map_id_to_index_;
-
-    bool is_rand_game_spawn_ = false;
 };
 
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "http_server.h"
-#include <boost/asio/strand.hpp>
 #include "boost/json.hpp"
 #include "model.h"
 #include <filesystem>
@@ -56,8 +55,8 @@ struct MapInfo {
 class RequestHandler {
 public:
     using Strand = boost::asio::strand<boost::asio::io_context::executor_type>;
-    explicit RequestHandler(model::Game& game, Strand strand)
-        : game_{ game }, api_strand_(strand) {
+    explicit RequestHandler(model::Game& game)
+        : game_{ game } {
     }
    
     StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version, bool keep_alive, boost::beast::string_view content_type);
@@ -69,7 +68,7 @@ public:
     bool CheckAuthorization(const app::Token& tocken);
 
     template <typename Body, typename Allocator, typename Send, typename Fn >
-    void API_PerfomActionWithToken(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send, Fn&& func) {
+    std::optional<StringResponse> API_PerfomActionWithToken(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send, Fn&& func) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -84,7 +83,7 @@ public:
         catch (...) {
             auto response = json_text_response(AuthorizationMissing(), http::status::unauthorized);
             send(response);
-            return;
+            return response;
         }
         auto token_from_req = auth.substr(7);
         if (CheckAuthorization(token_from_req)) {
@@ -92,16 +91,16 @@ public:
             if (answer == ErrorParseAction()){
                 auto response = json_text_response(std::move(answer), http::status::bad_request);
                 send(response);
-                return;
+                return response;
             }
            auto response = json_text_response(std::move(answer), http::status::ok);
            send(response);
-           return;
+           return response;
         }
         else {
             auto response = json_text_response(PlayerNotFound(), http::status::unauthorized);
             send(response);
-            return;
+            return response;
         }
     }
 
@@ -110,7 +109,7 @@ public:
     RequestHandler& operator=(const RequestHandler&) = delete;
 
     template <typename Body, typename Allocator, typename Send>
-    void GetAPI_info_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
+    std::optional<StringResponse> GetAPI_info_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type) {
            auto response  = this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
            response.set(http::field::cache_control, "no-cache");
@@ -122,7 +121,7 @@ public:
             std::string answ = GetMaps(game_);
             auto response = text_response(http::status::ok, answ, "application/json");
             send(response);
-            return;
+            return response;
         }
         if ((req.method_string() == "GET") &&
             (static_cast<std::string>(req.target()).substr(0, 13) == "/api/v1/maps/"))
@@ -133,18 +132,19 @@ public:
                 std::string answ = json::serialize(json::value_from(*map));
                 auto response = text_response(http::status::ok, answ, "application/json");
                 send(response);
-                return;
+                return response;
             }
             else {
                 std::string answ = json::serialize(MapNotFound());  //Карты не нашлось
                 auto response = text_response(http::status::not_found, answ, "application/json");
                 send(response);
-                return;
+                return response;
             }
         }
+        return std::nullopt;
     }
     template <typename Body, typename Allocator, typename Send>
-    bool GetStaticFile_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
+    std::optional<std::variant<StringResponse,FileResponse>> GetStaticFile_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type) {
             return this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
             };
@@ -171,29 +171,31 @@ public:
                 if (!IsFileExist(file_path)) {
                     auto response = text_response(http::status::not_found, "File not found", "text/plain");
                     send(response);
-                    return true;
+                    return response;
                 }
                 std::string file_type = GetFileType(file_path.string());
                 if (req.method_string() == "GET") {
                     auto response = get_file_response(http::status::ok, file_path, file_type);
                     send(response);
-                    return true;
+                    return response;
                 }
                 if (req.method_string() == "HEAD") {
                     auto response  = head_file_response(http::status::ok, file_path, file_type);
                     send(response);
-                    return true;
+                    return response;
                 }
             }
             else {
                 auto response = text_response(http::status::bad_request, "Not access", "text/plain");
                 send(response);
-                return true;
+                return response;
             }
         }
+
+        return std::nullopt;
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_AuthGame_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
+    std::optional<StringResponse> API_AuthGame_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -209,7 +211,7 @@ public:
             if (ec) {
                 auto response = json_text_response(JsonParseError(),http::status::bad_request);
                 send(response);
-                return;
+                return response;
             }
             std::string userName;
             std::string mapId;
@@ -220,44 +222,45 @@ public:
             catch (...) {
                 auto response = json_text_response(EmptyNickname(), http::status::bad_request);
                 send(response);
-                return;
+                return response;
             }
             //ошибка пустого имени
             if (userName == "") {
                 auto response = json_text_response(EmptyNickname(), http::status::bad_request);
                 send(response);
-                return;
+                return response;
             }
 
             //ошибка отсутствия карты
             if (!game_.FindMap(model::Map::Id(static_cast<std::string>(mapId)))) {
                 auto response = json_text_response(MapNotFound(), http::status::not_found);
                 send(response);
-                return;
-            }
+                return response;
+           }
 
             //установка игрока
-            boost::asio::dispatch(api_strand_, [this, &send, &jv, &json_text_response, &userName, &mapId]() {
-                std::shared_ptr<model::GameSession> gs = game_.FindGameSession(model::Map::Id(static_cast<std::string>(mapId)));
-                auto players_token = tokens_.AddPlayer(players_.Add(std::make_shared<model::Dog>(static_cast<std::string>(userName)), gs));
-                jv = {
-                    {"authToken", players_token},
-                    {"playerId", (*tokens_.FindPlayerByToken(players_token)).GetDogId()}
-                };
-                auto response = json_text_response(std::move(jv), http::status::ok);
-                send(response); 
-                });
-            return;
+            m.lock();
+            std::shared_ptr<model::GameSession> gs = game_.FindGameSession(model::Map::Id(static_cast<std::string>(mapId)));
+            auto players_token = tokens_.AddPlayer(players_.Add(std::make_shared<model::Dog>(static_cast<std::string>(userName)),gs));
+            m.unlock();
+            jv = {
+                {"authToken", players_token},
+                {"playerId", (*tokens_.FindPlayerByToken(players_token)).GetDogId()}
+            };
+            auto response = json_text_response(std::move(jv), http::status::ok);
+            send(response);
+            return response;
         }
         else if (static_cast<std::string>(req.target()) == "/api/v1/game/join") {
             auto response = json_text_response(NotPostRequest(), http::status::method_not_allowed);
             response.set(http::field::allow, "POST");
             send(response);
-            return;
+            return response;
         }
+        return std::nullopt;
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_PlayersList_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
+    std::optional<StringResponse> API_PlayersList_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -266,32 +269,34 @@ public:
             };
         if (((req.method_string() == "GET") || (req.method_string() == "HEAD"))&&
             (static_cast<std::string>(req.target()) == "/api/v1/game/players")) {
-            boost::asio::dispatch(api_strand_, [this, &send, &req]() {
-                API_PerfomActionWithToken(req, send, [this](const app::Token& token) {
-                    auto gs = this->tokens_.FindPlayerByToken(token)->GetGameSession();
-                    json::value name = {
-                         {"name", gs->GetDogs().begin()->second->GetName()}
+           
+            return API_PerfomActionWithToken(req, send, [this](const app::Token& token) {
+                m.lock();
+                auto gs = this->tokens_.FindPlayerByToken(token)->GetGameSession();
+                json::value name = {
+                     {"name", gs->GetDogs().begin()->second->GetName()}
+                };
+                json::value answer = { {std::to_string(gs->GetDogs().begin()->second->GetId()), name} };
+                for (auto p = (gs->GetDogs().begin()); p != gs->GetDogs().end(); ++p) {
+                    name = {
+                     {"name", p->second->GetName()}
                     };
-                    json::value answer = { {std::to_string(gs->GetDogs().begin()->second->GetId()), name} };
-                    for (auto p = (gs->GetDogs().begin()); p != gs->GetDogs().end(); ++p) {
-                        name = {
-                         {"name", p->second->GetName()}
-                        };
-                        answer.get_object().emplace(std::to_string(p->second->GetId()), name);
-                    }
-                    return answer;
-                    }); });
-            return;
+                    answer.get_object().emplace(std::to_string(p->second->GetId()), name);
+                }
+                m.unlock();
+                return answer; });
+
         }
         else if(static_cast<std::string>(req.target()) == "/api/v1/game/players"){
             auto response = json_text_response(InvalidMethod(), http::status::method_not_allowed);
             response.set(http::field::allow, "GET, HEAD");
             send(response);
-            return;
+            return response;
         }
+        return std::nullopt;
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_GameState_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
+    std::optional<StringResponse> API_GameState_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -300,42 +305,41 @@ public:
             };
         if (((req.method_string() == "GET") || (req.method_string() == "HEAD")) &&
             (static_cast<std::string>(req.target()) == "/api/v1/game/state")) {
-            boost::asio::dispatch(api_strand_, [this, &send, &req]() {
-                API_PerfomActionWithToken(req, send, [this](const app::Token& token) {
-                    auto gs = this->tokens_.FindPlayerByToken(token)->GetGameSession();
-                    json::value information_about_dog = {
-                        {"pos", std::vector<double>({gs->GetDogs().begin()->second->GetPosition().x, gs->GetDogs().begin()->second->GetPosition().y})},
-                        {"speed",std::vector<double>({gs->GetDogs().begin()->second->GetSpeed().s_x, gs->GetDogs().begin()->second->GetSpeed().s_y}) },
-                        {"dir", gs->GetDogs().begin()->second->GetDirectionToString()}
+
+           return API_PerfomActionWithToken(req, send, [this](const app::Token& token) {
+                auto gs = this->tokens_.FindPlayerByToken(token)->GetGameSession();
+                json::value information_about_dog = {
+                    {"pos", std::vector<double>({gs->GetDogs().begin()->second->GetPosition().x, gs->GetDogs().begin()->second->GetPosition().y})},
+                    {"speed",std::vector<double>({gs->GetDogs().begin()->second->GetSpeed().s_x, gs->GetDogs().begin()->second->GetSpeed().s_y}) },
+                    {"dir", gs->GetDogs().begin()->second->GetDirectionToString()}
+                };
+                json::value players = {
+                    {std::to_string(gs->GetDogs().begin()->second->GetId()), information_about_dog}
+                };
+                for (auto p = (gs->GetDogs().begin()); p != gs->GetDogs().end(); ++p) {
+                    information_about_dog = {
+                       {"pos", {p->second->GetPosition().x, p->second->GetPosition().y}},
+                       {"speed",std::vector<double>({p->second->GetSpeed().s_x, p->second->GetSpeed().s_y}) },
+                       {"dir", p->second->GetDirectionToString()}
                     };
-                    json::value players = {
-                        {std::to_string(gs->GetDogs().begin()->second->GetId()), information_about_dog}
-                    };
-                    for (auto p = (gs->GetDogs().begin()); p != gs->GetDogs().end(); ++p) {
-                        information_about_dog = {
-                           {"pos", {p->second->GetPosition().x, p->second->GetPosition().y}},
-                           {"speed",std::vector<double>({p->second->GetSpeed().s_x, p->second->GetSpeed().s_y}) },
-                           {"dir", p->second->GetDirectionToString()}
-                        };
-                        players.get_object().emplace(std::to_string(p->second->GetId()), information_about_dog);
-                    }
-                    json::value answer = {
-                        { "players", players }
-                    };
-                    return answer; 
-                    });
-           });  
-           return;
+                    players.get_object().emplace(std::to_string(p->second->GetId()), information_about_dog);
+                }
+                json::value answer = {
+                    { "players", players }
+                };
+                return answer;
+           });           
         }
          else if (static_cast<std::string>(req.target()) == "/api/v1/game/state") {
             auto response = json_text_response(InvalidMethod(), http::status::method_not_allowed);
             response.set(http::field::allow, "GET, HEAD");
             send(response);
-            return;
+            return response;           
          }
+         return std::nullopt;
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_MovePlayer_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
+    std::optional<StringResponse> API_MovePlayer_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -353,99 +357,102 @@ public:
             catch (...) {
                 auto response = json_text_response(InvalidContentType(), http::status::bad_request);
                 send(response);
-                return;
+                return response;
             }
-            boost::asio::dispatch(api_strand_, [this, &send, &req]() {
-                API_PerfomActionWithToken(req, send, [this, &req](const app::Token& token) {
-                    auto player = this->tokens_.FindPlayerByToken(token);
-                    double dog_speed = this->tokens_.FindPlayerByToken(token)->GetGameSession()->GetDogSpeed();
 
-                    json::error_code ec;
-                    json::value jv = json::parse(req.body(), ec);
-                    if (ec || !jv.as_object().contains("move"))
-                        return ErrorParseAction();
+            return API_PerfomActionWithToken(req, send, [this, &req](const app::Token& token) {
+                auto player = this->tokens_.FindPlayerByToken(token);
+                double dog_speed = this->tokens_.FindPlayerByToken(token)->GetGameSession()->GetDogSpeed();
 
-                    std::string dir = static_cast<std::string>(jv.as_object().at("move").as_string());
-                    //     std::lock_guard lg(m);
-                    if (dir == "L") {
-                        player->SetDogSpeed(-dog_speed, 0.);
-                        player->SetDogDirection(dir);
-                    }
-                    else if (dir == "R") {
-                        player->SetDogSpeed(dog_speed, 0.);
-                        player->SetDogDirection(dir);
-                    }
-                    else if (dir == "U") {
-                        player->SetDogSpeed(0., -dog_speed);
-                        player->SetDogDirection(dir);
-                    }
-                    else if (dir == "D") {
-                        player->SetDogSpeed(0., dog_speed);
-                        player->SetDogDirection(dir);
-                    }
-                    else if (dir == "") {
-                        player->SetDogSpeed(0., 0.);
-                        player->SetDogDirection("U");
-                    }
-                    else {
-                        return ErrorParseAction();
-                    }
-                    json::value answer = json::object();
-                    return answer;
-                    }); });
-            return;
+                json::error_code ec;
+                json::value jv = json::parse(req.body(), ec);
+                if (ec || !jv.as_object().contains("move"))
+                    return ErrorParseAction();
+                
+                std::string dir = static_cast<std::string>(jv.as_object().at("move").as_string());
+                std::lock_guard lg(m);
+                if (dir == "L") {
+                    player->SetDogSpeed(-dog_speed, 0.);
+                    player->SetDogDirection(dir);
+                }
+                else if (dir == "R") {
+                    player->SetDogSpeed(dog_speed, 0.);
+                    player->SetDogDirection(dir);
+                }
+                else if (dir == "U") {
+                    player->SetDogSpeed(0., -dog_speed);
+                    player->SetDogDirection(dir);
+                }
+                else if (dir == "D") {
+                    player->SetDogSpeed(0., dog_speed);
+                    player->SetDogDirection(dir);
+                }
+                else if (dir == "") {
+                    player->SetDogSpeed(0., 0.);
+                    player->SetDogDirection("U");
+                }
+                else {
+                    return ErrorParseAction();
+                }
+                json::value answer = json::object();
+                return answer;
+            });
+
         }
         else if (static_cast<std::string>(req.target()) == "/api/v1/game/player/action") {
             auto response = json_text_response(NotPostRequest(), http::status::method_not_allowed);
             response.set(http::field::allow, "POST");
             send(response);
-            return;
+            return response;
         }
+        return std::nullopt;
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_TimeTick_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
+    std::optional<StringResponse> API_TimeTick_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
             response.set(http::field::cache_control, "no-cache");
             return response;
             };
-        
-       
+
         if ((req.method_string() == "POST") &&
-            (static_cast<std::string>(req.target()) == "/api/v1/game/tick") ) {
+            (static_cast<std::string>(req.target()) == "/api/v1/game/tick")) {
             json::error_code ec;
             json::value jv = json::parse(req.body(), ec);
             if (ec || !jv.as_object().contains("timeDelta")) {
                 auto response = json_text_response(ErrorParseTick(), http::status::bad_request);
                 send(response);
-                return;
+                return response;
             }
             if (!jv.as_object().at("timeDelta").if_int64()) {
                 auto response = json_text_response(ErrorParseTick(), http::status::bad_request);
                 send(response);
-                return;
+                return response;
             }
             
+
+
             double time_delta = jv.as_object().at("timeDelta").as_int64(); //время в миллисикундах
-         //   boost::asio::dispatch(api_strand_, [this, &send, &json_text_response, time_delta]() {
-                this->players_.MoveAllDogs(time_delta);              
-                json::value answer = json::object();
-                auto response = json_text_response(std::move(answer), http::status::ok);
-                send(response);
-        //        });
-            return;
+            m.lock();
+            players_.MoveAllDogs(time_delta);
+            m.unlock();
+            json::value answer = json::object();
+            auto response = json_text_response(std::move(answer), http::status::ok);
+            send(response);
+            return response;
         }
         else if (static_cast<std::string>(req.target()) == "/api/v1/game/tick") {
             auto response = json_text_response(NotPostRequest(), http::status::method_not_allowed);
             response.set(http::field::allow, "POST");
             send(response);
-            return;
+            return response;
         }
+        return std::nullopt;
     }
 
     template <typename Body, typename Allocator, typename Send>
-    void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
+    std::variant<StringResponse, FileResponse> operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
 
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type) {
             return this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
@@ -457,47 +464,39 @@ public:
             return this->HEADMakeFileResponse(status, file_path, req.version(), req.keep_alive(), content_type);
             }; 
 
-        if (static_cast<std::string>(req.target()) == "/api/v1/maps" || static_cast<std::string>(req.target()).substr(0, 13) == "/api/v1/maps/") {
-            GetAPI_info_RequestHand(req, send);
-            return;
+     //'{"userName":  "Scooby Doo", "mapId": "map1"}
+
+        if(auto api_res_info = GetAPI_info_RequestHand(req, send))
+           return *api_res_info;
+
+        if (std::optional<std::variant<StringResponse, FileResponse>> static_res = GetStaticFile_RequestHand(req, send)) {
+            if (auto file_static_res = std::get_if<FileResponse>(&(*static_res)))
+                return std::move(*file_static_res);
+            if (auto text_static_res = std::get_if<StringResponse>(&(*static_res)))
+                return std::move(*text_static_res);
         }
-        if (GetStaticFile_RequestHand(req, send))
-            return;
-        if (static_cast<std::string>(req.target()) == "/api/v1/game/join") {
-            API_AuthGame_RequestHand(req, send);
-            return;
-        }
-        if (static_cast<std::string>(req.target()) == "/api/v1/game/players"){
-            API_PlayersList_RequestHand(req, send);
-            return;
-        }
-        if (static_cast<std::string>(req.target()) == "/api/v1/game/state") {
-            API_GameState_RequestHand(req, send);
-            return;
-        }
-        if (static_cast<std::string>(req.target()) == "/api/v1/game/player/action") {
-            API_MovePlayer_RequestHand(req, send);
-            return;
-        }
-        if (static_cast<std::string>(req.target()) == "/api/v1/game/tick" && !IsAutomaticTick) {
-            API_TimeTick_RequestHand(req, send);
-            return;
-        }
-             
-        std::string answ = json::serialize(BadRequest());   //Невалидный запрос
-        auto response = text_response(http::status::bad_request, answ, "application/json");
-        response.set(http::field::cache_control, "no-cache");
-        send(response);
-        return;
-        
-    }
+
+        if (auto api_auth_game = API_AuthGame_RequestHand(req, send))
+            return *api_auth_game;
+
+        if (auto api_players_list_game = API_PlayersList_RequestHand(req, send))
+            return *api_players_list_game;
+
+        if (auto api_state_game = API_GameState_RequestHand(req, send))
+            return *api_state_game;
+
+        if (auto api_move_players = API_MovePlayer_RequestHand(req, send))
+            return *api_move_players;
+
+        if (auto api_tick = API_TimeTick_RequestHand(req, send))
+            return *api_tick;
 
 
-    void Tick(std::chrono::milliseconds time_delta) {
-        this->players_.MoveAllDogs(std::chrono::duration<double>(time_delta).count()*1000);
-    }
-    void SetAutomaticTick() {
-        IsAutomaticTick = true;
+       std::string answ = json::serialize(BadRequest());   //Невалидный запрос
+       auto response = text_response(http::status::bad_request, answ, "application/json");
+       response.set(http::field::cache_control, "no-cache");
+       send(response);
+       return response;
     }
 
 private:
@@ -507,9 +506,7 @@ private:
 
     std::filesystem::path path_;
 
-    bool IsAutomaticTick = false;
-
-    Strand api_strand_;
+    std::mutex m;
  };
 
  template <typename RequestHandlerType>
@@ -525,14 +522,22 @@ private:
          BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, jv) << "request received";
      }
 
-     template <typename ResponseType>
-     void LogResponse(ResponseType&& res, int time_of_making_response) {
+     void LogResponse(const std::variant<StringResponse, FileResponse>& res, int time_of_making_response) {
          json::value jv;
+         if(auto p = std::get_if<StringResponse>(&res))
              jv = {
                   {"response_time", time_of_making_response},
-                  {"code", res.result_int()}, 
-                  {"content_type", res.base()["Content-Type"].to_string()}
+                  {"code", p->result_int()},
+                  {"content_type", p->base()["Content-Type"].to_string()}
+                  };
+         else {
+             auto pp = std::get_if<FileResponse>(&res);
+             jv = {
+                  {"response_time", time_of_making_response},
+                  {"code", pp->result_int()}, 
+                  {"content_type", pp->base()["Content-Type"].to_string()}
              };
+         }
          BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, jv) << "response sent";
      }
  public:
@@ -542,18 +547,17 @@ private:
 
      template <typename Body, typename Allocator, typename Send>
      void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
-         if (static_cast<std::string>(req.target()) != "/favicon.ico") {
+         if (static_cast<std::string>(req.target()) != "/favicon.ico"){
              LogRequest(req);
              auto t1 = clock();
-             request_handler_(std::move(req), [t1, self = this, &send](auto&& response) {
-                 send(response);
-                 auto t2 = clock();
-                 self->LogResponse(response, t2-t1);
-                 });
-             request_handler_(std::move(req), std::forward<Send>(send));
+             std::variant<StringResponse, FileResponse> resp = request_handler_(std::move(req), std::forward<Send>(send));
+             auto t2 = clock();
+             LogResponse(resp, int(t2 - t1));
          }
      }
-  private:
+
+ private:
+
      RequestHandlerType& request_handler_;
  };
 }  // namespace http_handler

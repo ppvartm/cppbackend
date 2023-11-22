@@ -9,6 +9,7 @@
 namespace app {
     using Token = std::string;
 
+
 	class Player {
 	public:
         Player() = delete;
@@ -38,6 +39,10 @@ namespace app {
                         ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().x <= road.GetEnd().x + 0.4) ||
                          (dog_->GetPosition().x <= road.GetStart().x + 0.4 && dog_->GetPosition().x >= road.GetEnd().x - 0.4)))
                             valid_roads.push_back(road);
+                    /*if (((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().y >= road.GetStart().y - 0.4) &&
+                        (dog_->GetPosition().x <= road.GetEnd().x + 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4))||
+                        ())
+                        */
                 }
                 else if (road.IsVertical()) {
                     if ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().x <= road.GetEnd().x + 0.4) &&
@@ -45,6 +50,11 @@ namespace app {
                             (dog_->GetPosition().y <= road.GetStart().y + 0.4 && dog_->GetPosition().y >= road.GetEnd().y - 0.4)))
                         valid_roads.push_back(road);
 
+
+                /*else if (road.IsVertical()) {
+                    if ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().y >= road.GetStart().y - 0.4) &&
+                        (dog_->GetPosition().x <= road.GetEnd().x + 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4))
+                        valid_roads.push_back(road);*/
                 }
             }
                     return valid_roads;
@@ -101,6 +111,13 @@ namespace app {
                 if (road.IsVertical() && (dog_->GetDirection() == model::Direction::SOUTH || dog_->GetDirection() == model::Direction::NORTH))
                     return answer;
                 answer = new_position;
+              /*
+                if ((answer.x == new_position.x) && (answer.y == new_position.y))
+                    return new_position;
+                if (roads.size() == 1)
+                    return answer;
+                else if (&road == &(*roads.begin()))
+                    answer = new_position;*/
             }
             return answer;
         }
