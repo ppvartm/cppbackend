@@ -139,17 +139,18 @@ int main(int argc, const char* argv[]) {
         http_handler::RequestHandler handler {game, api_strand};
         handler.SetFilePath(path2);
        // handler.SetFilePath("../static");
-        http_handler::LoggingRequestHandler logging_handler(handler);
+      //  http_handler::LoggingRequestHandler logging_handler(handler);
         
        
 
        //  5. Запустить обработчик HTTP-запросов, делегируя их обработчику запросов
         const auto address = net::ip::make_address("0.0.0.0");
         constexpr net::ip::port_type port = 8080;
-        http_server::ServeHttp(ioc, { address, port }, [&logging_handler](auto&& req, auto&& send) {
-            logging_handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
+        http_server::ServeHttp(ioc, { address, port }, [&handler](auto&& req, auto&& send) {
+            handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
             });
-        
+ 
+
         // 5.1. Добавляем автоматическое обновление времени, если это нужно
          
         //std::shared_ptr<Timer::Ticker> ticker;
