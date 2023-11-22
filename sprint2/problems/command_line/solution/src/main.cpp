@@ -114,6 +114,9 @@ int main(int argc, const char* argv[]) {
         path2 = std::filesystem::weakly_canonical(path2);
         // 1. Загружаем карту из файла и построить модель игры
         model::Game game = json_loader::LoadGame(path1);
+        if (args->random_spawn != ""){
+            //game.SetRandomSpawn();
+             }
         // model::Game game = json_loader::LoadGame("../data/config.json");
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();

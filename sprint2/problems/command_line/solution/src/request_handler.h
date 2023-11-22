@@ -69,7 +69,7 @@ public:
     bool CheckAuthorization(const app::Token& tocken);
 
     template <typename Body, typename Allocator, typename Send, typename Fn >
-    std::optional<StringResponse> API_PerfomActionWithToken(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send, Fn&& func) {
+    void API_PerfomActionWithToken(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send, Fn&& func) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -84,7 +84,7 @@ public:
         catch (...) {
             auto response = json_text_response(AuthorizationMissing(), http::status::unauthorized);
             send(response);
-            return response;
+            return;
         }
         auto token_from_req = auth.substr(7);
         if (CheckAuthorization(token_from_req)) {
@@ -92,16 +92,16 @@ public:
             if (answer == ErrorParseAction()){
                 auto response = json_text_response(std::move(answer), http::status::bad_request);
                 send(response);
-                return response;
+                return;
             }
            auto response = json_text_response(std::move(answer), http::status::ok);
            send(response);
-           return response;
+           return;
         }
         else {
             auto response = json_text_response(PlayerNotFound(), http::status::unauthorized);
             send(response);
-            return response;
+            return;
         }
     }
 
@@ -501,7 +501,7 @@ public:
             API_MovePlayer_RequestHand(req, send);
             return;
         }
-        if (static_cast<std::string>(req.target()) == "/api/v1/game/tick") {
+        if (static_cast<std::string>(req.target()) == "/api/v1/game/tick" && !IsAutomaticTick) {
             API_TimeTick_RequestHand(req, send);
             return;
         }
@@ -513,15 +513,26 @@ public:
        return;
     }
 
+    void Tick(std::chrono::milliseconds time_delta) {
+        boost::asio::dispatch(strand_, [this, time_delta]() {
+        this->players_.MoveAllDogs(std::chrono::duration<double>(time_delta).count() * 1000);
+        });
+        
+    }
+    void SetAutomaticTick() {
+        IsAutomaticTick = true;
+    }
+
 private:
     model::Game& game_;
     app::Players players_;
     app::PlayerTokens tokens_;
+    bool IsAutomaticTick = false;
 
     std::filesystem::path path_;
 
     Strand& strand_;
-    std::mutex m;
+    
  };
 
  template <typename RequestHandlerType>
@@ -538,12 +549,12 @@ private:
      }
 
      template <typename t>
-     void LogResponse(t&& res, int time_of_making_response) {
+     void LogResponse(t&& res, std::string content_type, int time_of_making_response) {
          json::value jv;
              jv = {
                   {"response_time", time_of_making_response},
                   {"code", res.result_int()},
-                  {"content_type", res.base()["Content-Type"].to_string()}
+                  {"content_type", content_type}
                   };
          BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, jv) << "response sent";
      }
@@ -559,9 +570,10 @@ private:
              auto t1 = clock();
 
              request_handler_(std::move(req), [send = std::forward<Send>(send), this, t1](auto&& response) {
+                 std::string content_type = response.base()["Content-Type"].to_string();
                  send(response);
                  auto t2 = clock();
-                 this->LogResponse(response, int(t2 - t1));
+                 this->LogResponse(response, content_type, int(t2 - t1));
              });
 
          }
