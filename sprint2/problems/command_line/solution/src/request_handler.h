@@ -110,7 +110,7 @@ public:
     RequestHandler& operator=(const RequestHandler&) = delete;
 
     template <typename Body, typename Allocator, typename Send>
-    void GetAPI_info_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+    void GetAPI_info_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type) {
            auto response  = this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
            response.set(http::field::cache_control, "no-cache");
@@ -144,7 +144,7 @@ public:
         }
     }
     template <typename Body, typename Allocator, typename Send>
-    bool GetStaticFile_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+    bool GetStaticFile_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
         const auto text_response = [&req, this](http::status status, std::string_view text, boost::beast::string_view content_type) {
             return this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
             };
@@ -193,7 +193,7 @@ public:
         }
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_AuthGame_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+    void API_AuthGame_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -257,7 +257,7 @@ public:
         }
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_PlayersList_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+    void API_PlayersList_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -291,7 +291,7 @@ public:
         }
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_GameState_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+    void API_GameState_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -335,7 +335,7 @@ public:
          }
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_MovePlayer_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+    void API_MovePlayer_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -403,7 +403,7 @@ public:
         }
     }
     template <typename Body, typename Allocator, typename Send>
-    void API_TimeTick_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
+    void API_TimeTick_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send&& send) {
         const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
             std::string answ = json::serialize(jv);
             StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
@@ -531,7 +531,7 @@ private:
              jv = {
                   {"response_time", time_of_making_response},
                   {"code", res.result_int()}, 
-                  {"content_type", "application/json"}//res.base()["Content-Type"].to_string()}
+                  {"content_type", res.base()["Content-Type"].to_string()}
              };
          BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, jv) << "response sent";
      }
@@ -545,12 +545,13 @@ private:
          if (static_cast<std::string>(req.target()) != "/favicon.ico") {
              LogRequest(req);
              auto t1 = clock();
-             request_handler_(std::move(req), [t1, self = this, &send](auto&& response) {
-
+            /* request_handler_(std::move(req), [t1, self = this, &send](auto&& response) {
+                 self->LogResponse(response, 30);
                  send(response);
                  auto t2 = clock();
-                 self->LogResponse(response, t2 - t1);
-                 });
+
+                 });*/
+             request_handler_(std::move(req), std::forward<Send>(send));
          }
      }
   private:
