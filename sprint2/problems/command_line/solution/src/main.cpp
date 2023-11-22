@@ -98,10 +98,10 @@ int main(int argc, const char* argv[]) {
         );
 
         auto args = ParseCommandLine(argc, argv);
-        std::cout << args->config_file_path << "\n";
-        std::cout << args->static_dir_path << "\n";
-        std::cout << args->random_spawn << "\n";
-        std::cout << args->tick_period << "\n";
+        //std::cout << args->config_file_path << "\n";
+        //std::cout << args->static_dir_path << "\n";
+        //std::cout << args->random_spawn << "\n";
+        //std::cout << args->tick_period << "\n";
 
 
         
@@ -152,15 +152,16 @@ int main(int argc, const char* argv[]) {
             });
         
         // 5.1. Добавляем автоматическое обновление времени, если это нужно
-        std::shared_ptr<Timer::Ticker> ticker;
-        if (args->tick_period != "") {
-            handler.SetAutomaticTick();
-              ticker = std::make_shared<Timer::Ticker>(api_strand, std::chrono::milliseconds(std::stoi(args->tick_period)),
-                 [&handler](std::chrono::milliseconds delta) {
-                     handler.Tick(delta); 
-                 });
-              ticker->Start();
-        }
+         
+        //std::shared_ptr<Timer::Ticker> ticker;
+        //if (args->tick_period != "") {
+        //    handler.SetAutomaticTick();
+        //      ticker = std::make_shared<Timer::Ticker>(api_strand, std::chrono::milliseconds(std::stoi(args->tick_period)),
+        //         [&handler](std::chrono::milliseconds delta) {
+        //             handler.Tick(delta); 
+        //         });
+        //      ticker->Start();
+        //}
 
       //   Эта надпись сообщает тестам о том, что сервер запущен и готов обрабатывать запросы
         std::cout << "Server has started..."sv << std::endl;

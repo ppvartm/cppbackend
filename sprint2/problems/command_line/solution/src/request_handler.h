@@ -486,7 +486,7 @@ public:
              
         std::string answ = json::serialize(BadRequest());   //Невалидный запрос
         auto response = text_response(http::status::bad_request, answ, "application/json");
-        response.set(http::field::cache_control, "no-cache");
+       // response.set(http::field::cache_control, "no-cache");
         send(response);
         return;
         
