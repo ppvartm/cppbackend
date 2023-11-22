@@ -531,7 +531,7 @@ private:
              jv = {
                   {"response_time", time_of_making_response},
                   {"code", res.result_int()}, 
-                  {"content_type", res.base()["Content-Type"].to_string()}
+                  {"content_type", "application/json"}//res.base()["Content-Type"].to_string()}
              };
          BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, jv) << "response sent";
      }
