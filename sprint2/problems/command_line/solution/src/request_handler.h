@@ -522,22 +522,23 @@ private:
          BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, jv) << "request received";
      }
 
-     void LogResponse(const std::variant<StringResponse, FileResponse>& res, int time_of_making_response) {
+     template <typename t>
+     void LogResponse(t&& res, int time_of_making_response) {
          json::value jv;
-         if(auto p = std::get_if<StringResponse>(&res))
+         //if(auto p = std::get_if<StringResponse>(&res))
              jv = {
                   {"response_time", time_of_making_response},
-                  {"code", p->result_int()},
-                  {"content_type", p->base()["Content-Type"].to_string()}
+                  {"code", res.result_int()},
+                  {"content_type", res.base()["Content-Type"].to_string()}
                   };
-         else {
+        /* else {
              auto pp = std::get_if<FileResponse>(&res);
              jv = {
                   {"response_time", time_of_making_response},
                   {"code", pp->result_int()}, 
                   {"content_type", pp->base()["Content-Type"].to_string()}
              };
-         }
+         }*/
          BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, jv) << "response sent";
      }
  public:
@@ -550,9 +551,16 @@ private:
          if (static_cast<std::string>(req.target()) != "/favicon.ico"){
              LogRequest(req);
              auto t1 = clock();
-             std::variant<StringResponse, FileResponse> resp = request_handler_(std::move(req), std::forward<Send>(send));
-             auto t2 = clock();
-             LogResponse(resp, int(t2 - t1));
+
+             request_handler_(std::move(req), [send = std::forward<Send>(send), this, t1](auto&& response) {
+                 send(response);
+                 auto t2 = clock();
+                 this->LogResponse(response, int(t2 - t1));
+                 });
+
+            // std::variant<StringResponse, FileResponse> resp = request_handler_(std::move(req), std::forward<Send>(send));
+            // auto t2 = clock();
+            // LogResponse(resp, int(t2 - t1));
          }
      }
 
