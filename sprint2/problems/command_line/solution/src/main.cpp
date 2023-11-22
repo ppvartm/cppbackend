@@ -96,7 +96,6 @@ int main(int argc, const char* argv[]) {
             logging::keywords::format = MyFormatter,
             logging::keywords::auto_flush = true
         );
-
         auto args = ParseCommandLine(argc, argv);
         //std::cout << args->config_file_path << "\n";
         //std::cout << args->static_dir_path << "\n";
