@@ -79,7 +79,6 @@ std::optional<Args> ParseCommandLine(int argc, const char* const argv[]) {
     if (!vm.contains("tick-period"s)) {
 
     }
-
     return args;
   }
 }  // namespace
