@@ -5,6 +5,7 @@
 #include <boost/asio/io_context.hpp>
 #include <iostream>
 #include <thread>
+#include <memory>
 
 #include "json_loader.h"
 #include "request_handler.h"
@@ -12,7 +13,7 @@
 
 #include "log.h"
 #include "app.h"
-
+#include "timer.h"
 
 
 
@@ -72,11 +73,8 @@ std::optional<Args> ParseCommandLine(int argc, const char* const argv[]) {
     if (!vm.contains("www-root"s)) {
         throw std::runtime_error("Static dir path is not specified"s);
     }
-    if (!vm.contains("randomize-spawn-points"s)) {
-        // args.random_spawn = "";
-    }
-    if (!vm.contains("tick-period"s)) {
-
+    if (vm.contains("randomize-spawn-points"s)) {
+         args.random_spawn = "random";
     }
     return args;
 }
@@ -112,11 +110,12 @@ int main(int argc, const char* argv[]) {
         path1 = std::filesystem::weakly_canonical(path1);
         std::filesystem::path path2{ args->static_dir_path };
         path2 = std::filesystem::weakly_canonical(path2);
+
         // 1. Загружаем карту из файла и построить модель игры
         model::Game game = json_loader::LoadGame(path1);
-        if (args->random_spawn != ""){
-            //game.SetRandomSpawn();
-             }
+        if (args->random_spawn == "random")
+            game.SetRandomSpawn();
+
         // model::Game game = json_loader::LoadGame("../data/config.json");
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
@@ -151,6 +150,17 @@ int main(int argc, const char* argv[]) {
             logging_handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
             });
         
+
+        std::shared_ptr<Timer::Ticker> ticker;
+        if (args->tick_period != "") {
+            handler.SetAutomaticTick();
+              ticker = std::make_shared<Timer::Ticker>(strand, std::chrono::milliseconds(std::stoi(args->tick_period)),
+                 [&handler](std::chrono::milliseconds delta) {
+                     handler.Tick(delta); 
+                 });
+              ticker->Start();
+        }
+
 
         // Эта надпись сообщает тестам о том, что сервер запущен и готов обрабатывать запросы
        // std::cout << "Server has started..."sv << std::endl;

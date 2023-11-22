@@ -356,7 +356,6 @@ public:
 
         if ((req.method_string() == "POST") &&
             (static_cast<std::string>(req.target()) == "/api/v1/game/player/action")) {
-            std::cout << "IM here\n";
             try {
                 if (req.base()["Content-Type"].to_string() != "application/json")
                     throw std::exception();
