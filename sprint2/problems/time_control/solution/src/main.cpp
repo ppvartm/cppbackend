@@ -79,9 +79,9 @@ int main(int argc, const char* argv[]) {
             }
             });
 
-        
+        auto strand = net::make_strand(ioc);
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
-        http_handler::RequestHandler handler {game};
+        http_handler::RequestHandler handler {game, strand};
         handler.SetFilePath(path2);
         //handler.SetFilePath("../static");
         http_handler::LoggingRequestHandler logging_handler(handler);
