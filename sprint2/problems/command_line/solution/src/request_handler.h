@@ -546,6 +546,7 @@ private:
              LogRequest(req);
              auto t1 = clock();
              request_handler_(std::move(req), [t1, self = this, &send](auto&& response) {
+
                  send(response);
                  auto t2 = clock();
                  self->LogResponse(response, t2 - t1);
