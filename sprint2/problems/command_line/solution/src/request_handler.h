@@ -428,12 +428,12 @@ public:
             }
             
             double time_delta = jv.as_object().at("timeDelta").as_int64(); //время в миллисикундах
-            boost::asio::dispatch(api_strand_, [this, &send, &json_text_response, time_delta]() {
+         //   boost::asio::dispatch(api_strand_, [this, &send, &json_text_response, time_delta]() {
                 this->players_.MoveAllDogs(time_delta);              
                 json::value answer = json::object();
                 auto response = json_text_response(std::move(answer), http::status::ok);
                 send(response);
-                });
+        //        });
             return;
         }
         else if (static_cast<std::string>(req.target()) == "/api/v1/game/tick") {
@@ -486,7 +486,7 @@ public:
              
         std::string answ = json::serialize(BadRequest());   //Невалидный запрос
         auto response = text_response(http::status::bad_request, answ, "application/json");
-       // response.set(http::field::cache_control, "no-cache");
+        response.set(http::field::cache_control, "no-cache");
         send(response);
         return;
         
