@@ -39,6 +39,12 @@ def shoot(ammo):
     time.sleep(COOLDOWN)
     stop(hit, wait=True)
 
+def start_pref(pid):
+    return run('sudo perf record -o perf.data -g -p '+ pid + ' sleep 20')
+
+
+def make_svg():
+    subprocess.Popen('sudo perf script -i perf.data | ./FlameGraph/stackcollapse-perf.pl | ./FlameGraph/flamegraph.pl > graph.svg', shell=True)
 
 def make_shots():
     for _ in range(SHOOT_COUNT):
@@ -48,7 +54,11 @@ def make_shots():
 
 
 server = run(start_server())
+pref = start_pref(str(server.pid))
 make_shots()
 stop(server)
+pref.wait()
+svg = make_svg()
+svg.wait()
 time.sleep(1)
 print('Job done')
