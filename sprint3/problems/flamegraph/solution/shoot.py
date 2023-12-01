@@ -24,7 +24,7 @@ def start_server():
 
 
 def run(command, output=None):
-    process = subprocess.Popen('nohup' + shlex.split(command) + '&', stdout=output, stderr=subprocess.DEVNULL)
+    process = subprocess.Popen(shlex.split(command), stdout=output, stderr=subprocess.DEVNULL)
     return process
 
 
