@@ -44,7 +44,7 @@ def start_pref(pid):
 
 
 def make_svg():
-    subprocess.Popen('sudo perf script -i perf.data | ./FlameGraph/stackcollapse-perf.pl | ./FlameGraph/flamegraph.pl > graph.svg', shell=True)
+    return subprocess.Popen('sudo perf script -i perf.data | ./FlameGraph/stackcollapse-perf.pl | ./FlameGraph/flamegraph.pl > graph.svg', shell=True)
 
 def make_shots():
     for _ in range(SHOOT_COUNT):
