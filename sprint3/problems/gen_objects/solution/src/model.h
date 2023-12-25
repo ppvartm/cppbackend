@@ -311,6 +311,21 @@ public:
         }
     }
 
+    void GenerateForced() {
+        int type = rand() % map_.GetMaxCountOfLootObjects();
+        Position pos;
+        auto road = map_.GetRoads()[rand() % map_.GetRoads().size()];
+        if (road.IsVertical()) {
+            pos.x = road.GetStart().x;
+            pos.y = rand() % (road.GetEnd().y - road.GetEnd().y + 1) + road.GetEnd().y;
+        }
+        else {
+            pos.y = road.GetStart().y;
+            pos.x = rand() % (road.GetEnd().x - road.GetEnd().x + 1) + road.GetEnd().x;
+        }
+        PushLostObjects({ type, pos });
+    }
+
 private:
     std::multimap<std::string, std::shared_ptr<Dog>> dogs_;
     std::vector<LostObject> lost_objects_list_;

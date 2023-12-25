@@ -267,6 +267,7 @@ namespace http_handler {
                 std::shared_ptr<model::GameSession> gs = this->game_.FindGameSession(model::Map::Id(static_cast<std::string>(mapId)));
                 //Создание пса; Создание игрока для этого пса и этой игровой сессии; Создание токена для этого игрока 
                 auto players_token = this->tokens_.AddPlayer(players_.Add(std::make_shared<model::Dog>(static_cast<std::string>(userName)),gs));
+                gs->GenerateForced();
                 json::value answer = {
                     {"authToken", players_token},
                     {"playerId", (*(this->tokens_).FindPlayerByToken(players_token)).GetDogId()}
