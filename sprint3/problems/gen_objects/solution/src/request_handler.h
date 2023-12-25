@@ -146,6 +146,11 @@ namespace http_handler {
                     return;
                 }
             }
+            if ((static_cast<std::string>(req.target()).substr(0, 13) == "/api/v1/maps/")) {
+                std::string answ = json::serialize(InvalidMethod());
+                auto response = text_response(http::status::method_not_allowed, answ, "application/json");
+                send(response);
+            }
             return;
         }
         template <typename Body, typename Allocator, typename Send>
