@@ -133,7 +133,7 @@ namespace http_handler {
                 send(response);
                 return;
             }
-            if ((req.method_string() == "GET") &&
+            if ((req.method_string() == "GET" || req.method_string() == "HEAD") &&
                 (static_cast<std::string>(req.target()).substr(0, 13) == "/api/v1/maps/"))
             {
                 std::string id = static_cast<std::string>(req.target()).substr(13); //получаем номер карты
@@ -152,6 +152,7 @@ namespace http_handler {
                     return;
                 }
             }
+
             if ((static_cast<std::string>(req.target()).substr(0, 13) == "/api/v1/maps/")) {
                 auto response = json_text_response(InvalidMethod(), http::status::method_not_allowed);
                 response.set(http::field::allow, "GET, HEAD");
@@ -360,7 +361,7 @@ namespace http_handler {
                         {std::to_string(0), information_about_lost_object}
                         };
                         int k = 1;
-                        for (auto p = (gs->GetCurrentLostObjects().begin()); p != gs->GetCurrentLostObjects().end(); ++p) {
+                        for (auto p = (gs->GetCurrentLostObjects().begin() + 1); p != gs->GetCurrentLostObjects().end(); ++p) {
                             information_about_lost_object = {
                                 {"type", p->type},
                                 {"pos", {p->position.x, p->position.y}}
