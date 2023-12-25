@@ -119,6 +119,12 @@ namespace http_handler {
                response.set(http::field::cache_control, "no-cache");
                return response;
                 };
+            const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
+                std::string answ = json::serialize(jv);
+                StringResponse response = MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
+                response.set(http::field::cache_control, "no-cache");
+                return response;
+                };
             if ((req.method_string() == "GET") &&
                 (static_cast<std::string>(req.target()) == "/api/v1/maps"))
             {
@@ -147,9 +153,10 @@ namespace http_handler {
                 }
             }
             if ((static_cast<std::string>(req.target()).substr(0, 13) == "/api/v1/maps/")) {
-                std::string answ = json::serialize(InvalidMethod());
-                auto response = text_response(http::status::method_not_allowed, answ, "application/json");
+                auto response = json_text_response(InvalidMethod(), http::status::method_not_allowed);
+                response.set(http::field::allow, "GET, HEAD");
                 send(response);
+                return;
             }
             return;
         }
