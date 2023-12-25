@@ -24,6 +24,10 @@ add_executable(game_server
         src/app.h
         src/app.cpp
         src/timer.h
+        src/loot_generator.h
+        src/loot_generator.cpp
+        src/extra_data.h
+        src/extra_data.cpp
 )
 target_include_directories(game_server PRIVATE CONAN_PKG::boost)
 target_link_libraries(game_server CONAN_PKG::boost) 
