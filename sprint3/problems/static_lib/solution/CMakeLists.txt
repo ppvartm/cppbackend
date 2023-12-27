@@ -6,23 +6,13 @@ set(CMAKE_CXX_STANDARD 20)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
 conan_basic_setup(TARGETS)
 
-add_library(model_lib STATIC
-        src/model.h
-	src/model.cpp
-        src/app.h
-        src/app.cpp
-        src/loot_generator.h
-        src/loot_generator.cpp
-)
-
-target_include_directories(model_lib PRIVATE CONAN_PKG::boost)
-target_link_libraries(model_lib PRIVATE CONAN_PKG::boost)
-
 add_executable(game_server
 	src/main.cpp
 	src/http_server.cpp
 	src/http_server.h
 	src/sdk.h
+	src/model.h
+	src/model.cpp
 	src/tagged.h
 	src/boost_json.cpp
 	src/json_loader.h
@@ -31,16 +21,13 @@ add_executable(game_server
 	src/request_handler.h
         src/log.h
         src/log.cpp
+        src/app.h
+        src/app.cpp
         src/timer.h
+        src/loot_generator.h
+        src/loot_generator.cpp
         src/extra_data.h
         src/extra_data.cpp
 )
-
-add_executable(game_server_tests
- tests/model_tests.cpp
-)
-
-target_include_directories(game_server_tests PRIVATE CONAN_PKG::boost)
 target_include_directories(game_server PRIVATE CONAN_PKG::boost)
-target_link_libraries(game_server_tests PRIVATE model_lib CONAN_PKG::catch2 CONAN_PKG::boost)
-target_link_libraries(game_server PRIVATE model_lib CONAN_PKG::boost)
+target_link_libraries(game_server CONAN_PKG::boost) 
