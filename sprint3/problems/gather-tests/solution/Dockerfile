@@ -10,14 +10,14 @@ RUN apt update && \
 
 COPY conanfile.txt /app/
 RUN mkdir /app/build && cd /app/build && \
-    conan install .. --build=missing -s build_type=Debug -s compiler.libcxx=libstdc++11 
+    conan install .. --build=missing -s build_type=Release -s compiler.libcxx=libstdc++11 
 
 COPY ./src /app/src
 COPY ./tests /app/tests
 COPY CMakeLists.txt /app/
 
 RUN cd /app/build && \
-    cmake -DCMAKE_BUILD_TYPE=Debug .. && \
-    cmake --build . && ls
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    cmake --build . --config Release && ls
 
 ENTRYPOINT ["/app/build/collision_detection_tests"]
