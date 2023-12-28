@@ -7,6 +7,11 @@
 
 namespace collision_detector {
 
+    struct Point {
+         double x;
+         double y;
+    };
+
 struct CollectionResult {
     bool IsCollected(double collect_radius) const {
         return proj_ratio >= 0 && proj_ratio <= 1 && sq_distance <= collect_radius * collect_radius;
@@ -15,16 +20,16 @@ struct CollectionResult {
     double proj_ratio;
 };
 
-CollectionResult TryCollectPoint(geom::Point2D a, geom::Point2D b, geom::Point2D c);
+CollectionResult TryCollectPoint(Point a, Point b, Point c);
 
 struct Item {
-    geom::Point2D position;
+    Point position;
     double width;
 };
 
 struct Gatherer {
-    geom::Point2D start_pos;
-    geom::Point2D end_pos;
+    Point start_pos;
+    Point end_pos;
     double width;
 };
 

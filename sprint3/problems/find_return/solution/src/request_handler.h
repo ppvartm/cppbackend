@@ -334,19 +334,27 @@ namespace http_handler {
                 boost::asio::dispatch(strand_, [send = std::forward<Send>(send), this, req]() {
                 API_PerfomActionWithToken(req, send, [this](const app::Token& token) {
                     auto gs = this->tokens_.FindPlayerByToken(token)->GetGameSession();
+                    std::vector<std::pair<size_t, model::LostObject>> bag;
+                    for (auto& b : gs->GetDogs().begin()->second->GetBag())
+                        bag.push_back({ b.first, b.second });
                     json::value information_about_dog = {
                         {"pos", std::vector<double>({gs->GetDogs().begin()->second->GetPosition().x, gs->GetDogs().begin()->second->GetPosition().y})},
                         {"speed",std::vector<double>({gs->GetDogs().begin()->second->GetSpeed().s_x, gs->GetDogs().begin()->second->GetSpeed().s_y}) },
-                        {"dir", gs->GetDogs().begin()->second->GetDirectionToString()}
+                        {"dir", gs->GetDogs().begin()->second->GetDirectionToString()},
+                        {"bag", bag}
                     };                
                     json::value players = {
                         {std::to_string(gs->GetDogs().begin()->second->GetId()), information_about_dog}
                     };
                     for (auto p = (gs->GetDogs().begin()); p != gs->GetDogs().end(); ++p) {
+                        bag.clear();
+                        for (auto& b : p->second->GetBag())
+                            bag.push_back({ b.first, b.second });
                         information_about_dog = {
                            {"pos", {p->second->GetPosition().x, p->second->GetPosition().y}},
                            {"speed",std::vector<double>({p->second->GetSpeed().s_x, p->second->GetSpeed().s_y}) },
-                           {"dir", p->second->GetDirectionToString()}
+                           {"dir", p->second->GetDirectionToString()},
+                           {"bag", bag}
                         };
                         players.get_object().emplace(std::to_string(p->second->GetId()), information_about_dog);
                     }
@@ -553,6 +561,10 @@ namespace http_handler {
             for (int i = 0; i < this->game_.GetGameSessions().size(); ++i)
                 this->game_.GetGameSessions()[i]->GenerateLoot(time_delta);
 
+            for (int i = 0; i < this->game_.GetGameSessions().size(); ++i) {
+                this->game_.GetGameSessions()[i]->CollectionItems(std::chrono::duration<double>(time_delta).count() * 1000);
+                this->game_.GetGameSessions()[i]->LeaveItems(std::chrono::duration<double>(time_delta).count() * 1000);
+            }
 
             });
         

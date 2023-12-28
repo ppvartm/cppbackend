@@ -39,6 +39,7 @@ void GameSession::AddDog(std::shared_ptr<Dog> dog) {
         }
     }
     dog->SetPosition(pos);
+    dog->SetBagCapacity(map_.GetBagCapacity());
     dogs_.insert({ dog->GetName(),dog });
 }
 
@@ -115,6 +116,11 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::
             {"lootTypes", map_and_json_data.second}
     };
 }
-
+void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::pair<size_t, LostObject>& lost_object) {
+    jv = {
+        {"id", lost_object.first},
+        {"type", lost_object.second.type}
+    };
+}
 
 }  // namespace model

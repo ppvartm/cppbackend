@@ -7,7 +7,6 @@
 
 #include "model.h"
 
-
 namespace app {
     using Token = std::string;
 
@@ -84,4 +83,5 @@ namespace app {
     private:
         std::unordered_map<std::pair<uint64_t, std::string>, std::shared_ptr<Player>, boost::hash<std::pair<uint64_t, std::string>>> players_;
     };
+    
 }

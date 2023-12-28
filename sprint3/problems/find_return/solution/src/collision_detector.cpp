@@ -3,9 +3,9 @@
 
 namespace collision_detector {
 
-CollectionResult TryCollectPoint(geom::Point2D a, geom::Point2D b, geom::Point2D c) {
+CollectionResult TryCollectPoint(Point a, Point b, Point c) {
 
-    assert(b.x != a.x || b.y != a.y);
+   // assert(b.x != a.x || b.y != a.y);
     const double u_x = c.x - a.x;
     const double u_y = c.y - a.y;
     const double v_x = b.x - a.x;
@@ -22,7 +22,7 @@ CollectionResult TryCollectPoint(geom::Point2D a, geom::Point2D b, geom::Point2D
 std::vector<GatheringEvent> FindGatherEvents(const ItemGathererProvider& provider) {
     std::vector<GatheringEvent> detected_events;
 
-    static auto eq_pt = [](geom::Point2D p1, geom::Point2D p2) {
+    static auto eq_pt = [](Point p1, Point p2) {
         return p1.x == p2.x && p1.y == p2.y;
         };
 
