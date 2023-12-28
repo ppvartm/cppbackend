@@ -3,10 +3,6 @@
 
 namespace http_server {
 
-	void ReportError(beast::error_code ec, std::string_view what) {
-	//	std::cerr << what << ": "sv << ec.message() << std::endl;
-	}
-
     //SessinBase part ********************************************
 	void SessionBase::Run() {
 		net::dispatch(stream_.get_executor(), beast::bind_front_handler(&SessionBase::Read, GetSharedThis()));
@@ -22,14 +18,14 @@ namespace http_server {
            return Close();
         if (ec) {
             ServerErrorLog(ec.value(), ec.message(), "read");
-            return ReportError(ec, "read"sv);
+            return;
         }
         HandleRequest(std::move(request_));
     }
     void SessionBase::OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written) {
         if (ec) {
             ServerErrorLog(ec.value(), ec.message(), "write");
-            return ReportError(ec, "write"sv);
+            return;
         }
         if (close) 
            return Close();
@@ -39,7 +35,7 @@ namespace http_server {
         beast::error_code ec;
         stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
         if (ec) 
-          return ReportError(ec, "close"sv);
+          return;
     }
     // ********************************************
 

@@ -10,7 +10,7 @@
 namespace app {
     using Token = std::string;
 
-    //Управляет собакой; Ассоциирован с конкретным псом и конкретной игровой сессией
+    //move the dog; associated with certain dog and certain game-session
 	class Player {
 	public:
         Player() = delete;
@@ -39,7 +39,7 @@ namespace app {
         std::shared_ptr<model::Dog> dog_;
 		std::shared_ptr<model::GameSession> game_session_;		
 	};
-    //Хранит пары Токен-Игрок 
+    //contains the pairs player-tocken 
     class PlayerTokens {  
     public:
         Token AddPlayer(std::shared_ptr<Player> player) {
@@ -67,7 +67,7 @@ namespace app {
         }() };
         Token GenerateToken();
     };
-    //Хранит набор всех игроков
+    //contains the all players
     class Players {
     public:
         std::shared_ptr<Player> Add(std::shared_ptr<model::Dog> dog, std::shared_ptr<model::GameSession> game_session) {

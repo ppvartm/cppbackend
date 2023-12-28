@@ -3,18 +3,19 @@
 namespace app {
     //Player
     std::vector<model::Road> Player::GetRoadsWithDog() {
+        double width_of_road = model::WIDTH_OF_ROAD;
         std::vector<model::Road> valid_roads;
         for (auto& road : game_session_->GetMap().GetRoads()) {
             if (road.IsHorizontal()) {
-                if ((dog_->GetPosition().y >= road.GetStart().y - 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4) &&
-                    ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().x <= road.GetEnd().x + 0.4) ||
-                        (dog_->GetPosition().x <= road.GetStart().x + 0.4 && dog_->GetPosition().x >= road.GetEnd().x - 0.4)))
+                if ((dog_->GetPosition().y >= road.GetStart().y - width_of_road && dog_->GetPosition().y <= road.GetEnd().y + width_of_road) &&
+                    ((dog_->GetPosition().x >= road.GetStart().x - width_of_road && dog_->GetPosition().x <= road.GetEnd().x + width_of_road) ||
+                        (dog_->GetPosition().x <= road.GetStart().x + width_of_road && dog_->GetPosition().x >= road.GetEnd().x - width_of_road)))
                     valid_roads.push_back(road);
             }
             else if (road.IsVertical()) {
-                if ((dog_->GetPosition().x >= road.GetStart().x - 0.4 && dog_->GetPosition().x <= road.GetEnd().x + 0.4) &&
-                    ((dog_->GetPosition().y >= road.GetStart().y - 0.4 && dog_->GetPosition().y <= road.GetEnd().y + 0.4) ||
-                        (dog_->GetPosition().y <= road.GetStart().y + 0.4 && dog_->GetPosition().y >= road.GetEnd().y - 0.4)))
+                if ((dog_->GetPosition().x >= road.GetStart().x - width_of_road && dog_->GetPosition().x <= road.GetEnd().x + width_of_road) &&
+                    ((dog_->GetPosition().y >= road.GetStart().y - width_of_road && dog_->GetPosition().y <= road.GetEnd().y + width_of_road) ||
+                        (dog_->GetPosition().y <= road.GetStart().y + width_of_road && dog_->GetPosition().y >= road.GetEnd().y - width_of_road)))
                     valid_roads.push_back(road);
             }
         }
@@ -24,24 +25,25 @@ namespace app {
     model::Position Player::NewCorrectPosition(model::Position new_position) {
         auto roads = GetRoadsWithDog();
         auto answer = new_position;
+        double width_of_road = model::WIDTH_OF_ROAD;
         for (auto& road : roads) {
             if (road.IsHorizontal()) {
-                if (new_position.y > road.GetStart().y + 0.4)
-                    answer.y = road.GetStart().y + 0.4;
-                if (new_position.y < road.GetStart().y - 0.4)
-                    answer.y = road.GetStart().y - 0.4;
+                if (new_position.y > road.GetStart().y + width_of_road)
+                    answer.y = road.GetStart().y + width_of_road;
+                if (new_position.y < road.GetStart().y - width_of_road)
+                    answer.y = road.GetStart().y - width_of_road;
 
                 if (road.GetStart().x < road.GetEnd().x) {
-                    if (new_position.x < road.GetStart().x - 0.4)
-                        answer.x = road.GetStart().x - 0.4;
-                    if (new_position.x > road.GetEnd().x + 0.4)
-                        answer.x = road.GetEnd().x + 0.4;
+                    if (new_position.x < road.GetStart().x - width_of_road)
+                        answer.x = road.GetStart().x - width_of_road;
+                    if (new_position.x > road.GetEnd().x + width_of_road)
+                        answer.x = road.GetEnd().x + width_of_road;
                 }
                 else {
-                    if (new_position.x > road.GetStart().x + 0.4)
-                        answer.x = road.GetStart().x + 0.4;
-                    if (new_position.x < road.GetEnd().x - 0.4)
-                        answer.x = road.GetEnd().x - 0.4;
+                    if (new_position.x > road.GetStart().x + width_of_road)
+                        answer.x = road.GetStart().x + width_of_road;
+                    if (new_position.x < road.GetEnd().x - width_of_road)
+                        answer.x = road.GetEnd().x - width_of_road;
                 }
             }
             else {
@@ -76,7 +78,7 @@ namespace app {
         return answer;
     }
     void Player::MoveDog(double time_delta) {  //время в миллисикундах
-        model::Position new_position = {
+        model::Position new_position = { 
             dog_->GetPosition().x + dog_->GetSpeed().s_x * time_delta / 1000.,
             dog_->GetPosition().y + dog_->GetSpeed().s_y * time_delta / 1000.
         };

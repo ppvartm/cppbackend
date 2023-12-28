@@ -20,7 +20,6 @@ namespace http_server {
 
     using namespace std::literals;
 
-    void ReportError(beast::error_code ec, std::string_view what);
 
     class SessionBase {
     public:
@@ -96,7 +95,7 @@ namespace http_server {
         void OnAccept(sys::error_code ec, tcp::socket socket) {
             if (ec) {
                 ServerErrorLog(ec.value(), ec.message(), "accept");
-                return ReportError(ec, "accept"sv);
+                return;
             }
             AsyncRunSession(std::move(socket));
             DoAccept();

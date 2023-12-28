@@ -30,7 +30,6 @@ namespace Timer {
 
     private:
         void ScheduleTick() {
-            assert(strand_.running_in_this_thread());
             timer_.expires_after(period_);
             timer_.async_wait([self = shared_from_this()](boost::system::error_code ec) {
                 self->OnTick(ec);
