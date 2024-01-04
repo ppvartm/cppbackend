@@ -171,9 +171,12 @@ namespace app_serialization {
 				oa << game_state;
 
 				std::ofstream file;
-				file.open(state_file_path_);
+				std::filesystem::path temp_path = state_file_path_.string().substr(0, state_file_path_.string().size() - 4) + "temp.txt";
+				file.open(temp_path);
 				file << ss_.str();
 				file.close();
+				std::filesystem::rename(temp_path, state_file_path_);
+			
 			}
 		}
 
