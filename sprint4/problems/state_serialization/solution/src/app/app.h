@@ -156,7 +156,7 @@ namespace app {
                     //if(game_sessions_[i]->GetDogs().size() != 0 )
                       //  std::cout << game_sessions_[i]->GetDog(0).GetName() << "\n";
                 }
-               // app_listener_.OnTick(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
+                app_listener_.OnTick(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
 
             });
         }
