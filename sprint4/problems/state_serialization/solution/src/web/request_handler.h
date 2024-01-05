@@ -291,6 +291,10 @@ namespace http_handler {
                 //Создание пса; Создание игрока для этого пса и этой игровой сессии; Создание токена для этого игрока 
                 auto players_token = this->tokens_.AddPlayer(players_.Add(std::make_shared<model::Dog>(static_cast<std::string>(userName)),gs));
                 gs->GenerateForced();
+                if (f) {
+                    Serialize();
+                    f = false;
+                }
                 json::value answer = {
                     {"authToken", players_token},
                     {"playerId", (*(this->tokens_).FindPlayerByToken(players_token)).GetDogId()}
@@ -597,6 +601,8 @@ namespace http_handler {
         model::Game& game_;
         app::Players players_;
         app::PlayerTokens tokens_;
+
+        bool f = true;
 
         extra_data::Json_data lost_objects_json_data_;
         bool IsAutomaticTick = false;

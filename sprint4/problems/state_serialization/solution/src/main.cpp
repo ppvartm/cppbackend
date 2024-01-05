@@ -146,8 +146,10 @@ int main(int argc, const char* argv[]) {
         // 4.SIGINT & SIGTERM
         net::signal_set signals(ioc, SIGINT, SIGTERM);
         signals.async_wait([&ioc, &handler, is_save](const sys::error_code& ec, [[maybe_unused]] int signal_number) {
-            if (!ec) {
+           if (!ec) {
                 ioc.stop();
+                if (is_save)
+                   handler.Serialize();
             }
         });
         // 5. starting http_handler
@@ -175,8 +177,8 @@ int main(int argc, const char* argv[]) {
         RunWorkers(std::max(1u, num_threads), [&ioc] {
             ioc.run();
         });
-
-        if (is_save)
+      //  std::cout << "KILL\n";
+       // if (is_save)
             handler.Serialize();
 
         ServerStopLog(0);
