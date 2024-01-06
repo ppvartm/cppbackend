@@ -30,7 +30,6 @@ int main(int argc, char** argv) {
 
 		while (true) {
 			std::getline(std::cin, json_request);
-			std::cout << json_request << "\n";
 			auto value = boost::json::parse(json_request);
 			auto action = value.as_object().at("action").as_string();
 			if (action == "exit")
