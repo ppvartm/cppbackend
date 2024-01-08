@@ -8,15 +8,15 @@ using namespace std::literals;
 
 namespace {
 
-constexpr const char DB_URL_ENV_NAME[]{"postgres://postgres:ppvartm2828@localhost:5432/test_db"};
+constexpr const char DB_URL_ENV_NAME[]{"BOOKYPEDIA_DB_URL"};
 
 bookypedia::AppConfig GetConfigFromEnv() {
     bookypedia::AppConfig config;
-   // if (const auto* url = std::getenv(DB_URL_ENV_NAME)) {
-        config.db_url = "postgres://postgres:ppvartm2828@localhost:5432/test_db";
-   // } else {
-   //     throw std::runtime_error(DB_URL_ENV_NAME + " environment variable not found"s);
-   // }
+    if (const auto* url = std::getenv(DB_URL_ENV_NAME)) {
+        config.db_url = url;
+    } else {
+        throw std::runtime_error(DB_URL_ENV_NAME + " environment variable not found"s);
+    }
     return config;
 }
 
