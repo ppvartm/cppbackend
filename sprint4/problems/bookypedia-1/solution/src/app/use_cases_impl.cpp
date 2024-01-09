@@ -27,6 +27,10 @@ std::vector<std::string> UseCasesImpl::GetAllAuthors() {
     return authors_.GetListOfAuthors();
 }
 
+std::vector<std::pair<std::string, std::string>> UseCasesImpl::GetFullInfoAboutAuthors() {
+    return authors_.GetFullInfoAboutAuthors();
+}
+
 std::string UseCasesImpl::GetAuthorId(int i) {
     return authors_.GetAuthorId(i);
 }

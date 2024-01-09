@@ -67,7 +67,7 @@ bool View::AddAuthor(std::istream& cmd_input) const {
 bool View::AddBook(std::istream& cmd_input) const {
     try {
         if (auto params = GetBookParams(cmd_input)) {
-               use_cases_.AddBook(use_cases_.GetAuthorId(std::stoi(params.value().author_id) + 1), params.value().title, params.value().publication_year);
+               use_cases_.AddBook(params.value().author_id, params.value().title, params.value().publication_year);
         }
     } catch (const std::exception&) {
         output_ << "Failed to add book"sv << std::endl;
@@ -116,6 +116,7 @@ std::optional<detail::AddBookParams> View::GetBookParams(std::istream& cmd_input
 std::optional<std::string> View::SelectAuthor() const {
     output_ << "Select author:" << std::endl;
     auto authors = GetAuthors();
+    auto authors_full = GetFullInfoAboutAuthors();
     PrintVector(output_, authors);
     output_ << "Enter author # or empty line to cancel" << std::endl;
 
@@ -135,8 +136,7 @@ std::optional<std::string> View::SelectAuthor() const {
     if (author_idx < 0 or author_idx >= authors.size()) {
         throw std::runtime_error("Invalid author num");
     }
-
-    return authors[author_idx].id;
+    return authors_full[author_idx].uuid;
 }
 
 std::vector<detail::AuthorInfo> View::GetAuthors() const {
@@ -147,6 +147,16 @@ std::vector<detail::AuthorInfo> View::GetAuthors() const {
     }
     return dst_autors;
 }
+
+std::vector<detail::AuthorInfo> View::GetFullInfoAboutAuthors() const {
+    std::vector<detail::AuthorInfo> dst_autors;
+    auto result = use_cases_.GetFullInfoAboutAuthors();
+    for (int i = 0; i < result.size(); ++i) {
+        dst_autors.push_back({ std::to_string(i), result[i].first, result[i].second});
+    }
+    return dst_autors;
+}
+
 
 std::vector<detail::BookInfo> View::GetBooks() const {
     std::vector<detail::BookInfo> books;
@@ -159,7 +169,7 @@ std::vector<detail::BookInfo> View::GetBooks() const {
 
 std::vector<detail::BookInfo> View::GetAuthorBooks(const std::string& author_id) const {
     std::vector<detail::BookInfo> books;
-    auto result = use_cases_.GetAuthorBooks(use_cases_.GetAuthorId(std::stoi(author_id)+ 1));
+    auto result = use_cases_.GetAuthorBooks(author_id);
     for (int i = 0; i < result.size(); ++i) {
         books.push_back({ result[i].first ,result[i].second});
     }

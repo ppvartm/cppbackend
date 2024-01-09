@@ -16,6 +16,8 @@ public:
     void Save(const domain::Author& author) override;
 
     std::vector<std::string> GetListOfAuthors() override;
+
+    std::vector<std::pair<std::string, std::string>> GetFullInfoAboutAuthors() override;
     std::string GetAuthorId(int i) override;
 
 private:

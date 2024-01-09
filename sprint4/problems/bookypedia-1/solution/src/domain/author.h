@@ -35,6 +35,7 @@ class AuthorRepository {
 public:
     virtual void Save(const Author& author) = 0;
     virtual std::vector<std::string> GetListOfAuthors() = 0;
+    virtual std::vector<std::pair<std::string, std::string>> GetFullInfoAboutAuthors() = 0;
     virtual std::string GetAuthorId(int i) = 0;
 
 protected:

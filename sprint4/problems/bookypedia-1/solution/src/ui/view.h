@@ -27,6 +27,7 @@ struct AddBookParams {
 struct AuthorInfo {
     std::string id;
     std::string name;
+    std::string uuid;
 };
 
 struct BookInfo {
@@ -60,6 +61,7 @@ private:
     std::optional<detail::AddBookParams> GetBookParams(std::istream& cmd_input) const;
     std::optional<std::string> SelectAuthor() const;
     std::vector<detail::AuthorInfo> GetAuthors() const;
+    std::vector<detail::AuthorInfo> GetFullInfoAboutAuthors() const;
     std::vector<detail::BookInfo> GetBooks() const;
     std::vector<detail::BookInfo> GetAuthorBooks(const std::string& author_id) const;
 

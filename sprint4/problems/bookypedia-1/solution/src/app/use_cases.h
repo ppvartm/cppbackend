@@ -16,6 +16,7 @@ public:
     virtual std::vector<std::string> GetAllAuthors() = 0;
     virtual std::string GetAuthorId(int i) = 0;
     virtual std::vector<std::pair<std::string, uint16_t>> GetAuthorBooks(const std::string& author_id) = 0;
+    virtual std::vector<std::pair<std::string, std::string>> GetFullInfoAboutAuthors() = 0;
     virtual std::vector<std::pair<std::string, uint16_t>> GetAuthorBooks(int id) = 0;
 
 protected:
