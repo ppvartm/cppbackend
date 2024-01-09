@@ -21,31 +21,6 @@ void BookRepositoryImpl::Save(const domain::Book& book) {
    
 }
 
-void BookRepositoryImpl::Save(domain::BookId book_id, int author_id, const std::string& title, uint16_t publication_year) {
-    std::string result;
-   
-     pqxx::work work{ connection_ };
-    work.exec_params("INSERT INTO books (id, author_id, title, publication_year) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET author_id=$2, title=$3, publication_year=$4;"_zv,
-     book_id.ToString(), result, title, publication_year);
-      work.commit();
-   
-    
-}
-
-
-std::string AuthorRepositoryImpl::GetAuthorId(int i) {
-    std::string result;
-    pqxx::read_transaction read(connection_);
-    auto query_text = "SELECT name, id FROM authors ORDER BY name"_zv;
-    int k = 1;
-    for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        if (k++ == i) {
-            result = id;
-        }
-
-    }
-    return result;
-}
 
 std::vector<std::string> AuthorRepositoryImpl::GetListOfAuthors() {
     std::vector<std::string> result;
@@ -85,26 +60,6 @@ std::vector<std::pair<std::string, uint16_t>> BookRepositoryImpl::GetAuthorBooks
     pqxx::read_transaction read(connection_);
     auto str = "SELECT title, publication_year FROM books WHERE author_id = \'" + author_id + "\' ORDER BY publication_year, title";
     auto query_text = pqxx::zview(str.c_str());
-    for (auto [title, year] : read.query<std::string, uint16_t>(query_text)) {
-        result.push_back({ title, year });
-    }
-    return result;
-}
-
-std::vector<std::pair<std::string, uint16_t>> BookRepositoryImpl::GetAuthorBooks(int i) {
-    std::string author_id;
-    pqxx::read_transaction read(connection_);
-    auto query_text = "SELECT name, id FROM authors ORDER BY name"_zv;
-    int k = 1;
-    for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        if (k++ == i) {
-            author_id = id;
-        }
-    }
- 
-    std::vector<std::pair<std::string, uint16_t>> result;
-    auto str = "SELECT title, publication_year FROM books WHERE author_id = \'" + author_id + "\' ORDER BY publication_year, title";
-    query_text = pqxx::zview(str.c_str());
     for (auto [title, year] : read.query<std::string, uint16_t>(query_text)) {
         result.push_back({ title, year });
     }

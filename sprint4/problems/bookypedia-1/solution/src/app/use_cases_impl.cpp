@@ -14,10 +14,6 @@ void UseCasesImpl::AddBook(const std::string& author_id, const std::string& titl
     books_.Save({ BookId::New(), author_id, title, publication_year });
 }
 
-void UseCasesImpl::AddBook(int author_id, const std::string& title, uint16_t publication_year) {
-    books_.Save( BookId::New(), author_id, title, publication_year );
-}
-
 
 std::vector<std::pair<std::string, uint16_t>> UseCasesImpl::GetAllBooks() {
     return books_.GetAllBooks();
@@ -31,17 +27,11 @@ std::vector<std::pair<std::string, std::string>> UseCasesImpl::GetFullInfoAboutA
     return authors_.GetFullInfoAboutAuthors();
 }
 
-std::string UseCasesImpl::GetAuthorId(int i) {
-    return authors_.GetAuthorId(i);
-}
 
 std::vector<std::pair<std::string, uint16_t>> UseCasesImpl::GetAuthorBooks(const std::string& author_id) {
     return books_.GetAuthorBooks(author_id);
 }
 
-std::vector<std::pair<std::string, uint16_t>> UseCasesImpl::GetAuthorBooks(int id) {
-    return books_.GetAuthorBooks(id);
-}
 
 
 
