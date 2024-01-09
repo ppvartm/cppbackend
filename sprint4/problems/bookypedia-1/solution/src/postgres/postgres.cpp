@@ -1,7 +1,6 @@
 #include "postgres.h"
 #include <pqxx/zview.hxx>
 #include <pqxx/pqxx>
-#include <iostream>
 namespace postgres {
 
 using namespace std::literals;
@@ -28,14 +27,10 @@ void BookRepositoryImpl::Save(domain::BookId book_id, int author_id, const std::
     int k = 1;
 
     for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        std::cout << name << "\n";
         if (k++ == author_id) {
             result = id;
         }
     }
-    std::cout << result << "\n";
-    std::cout << book_id.ToString() << "\n";
-    std::cout << title << "\n" << publication_year << "\n";
     pqxx::work work{ connection_ };
     work.exec_params("INSERT INTO books (id, author_id, title, publication_year) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET author_id=$2, title=$3, publication_year=$4;"_zv,
         book_id.ToString(), result, title, publication_year);
@@ -95,7 +90,6 @@ std::vector<std::pair<std::string, uint16_t>> BookRepositoryImpl::GetAuthorBooks
     auto query_text = "SELECT name, id FROM authors ORDER BY name"_zv;
     int k = 1;
     for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        std::cout << name << "\n";
         if (k++ == i) {
             author_id = id;
         }
