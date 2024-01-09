@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+
 #include"../domain/author.h"
 namespace menu {
 class Menu;
@@ -31,6 +32,16 @@ struct AuthorInfo {
 struct BookInfo {
     std::string title;
     int publication_year;
+    
+    BookInfo() {};
+    BookInfo(const BookInfo&) = default;
+    BookInfo(std::pair<std::string, uint16_t> p): title(p.first), publication_year(p.second){}
+    BookInfo(std::string tit, int pub_year):title(tit), publication_year(pub_year){}
+    BookInfo& operator=(std::pair<std::string, uint16_t> p) {
+        title = p.first;
+        publication_year = p.second;
+        return *this;
+    }
 };
 
 }  // namespace detail

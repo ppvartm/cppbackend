@@ -11,10 +11,12 @@ class UseCases {
 public:
     virtual void AddAuthor(const std::string& name) = 0;
     virtual void AddBook(const std::string& author_id, const std::string& title, uint16_t publication_year) = 0;
+    virtual void AddBook(int author_id, const std::string& title, uint16_t publication_year) = 0;
     virtual std::vector<std::pair<std::string, uint16_t>> GetAllBooks() = 0;
     virtual std::vector<std::string> GetAllAuthors() = 0;
     virtual std::string GetAuthorId(int i) = 0;
     virtual std::vector<std::pair<std::string, uint16_t>> GetAuthorBooks(const std::string& author_id) = 0;
+    virtual std::vector<std::pair<std::string, uint16_t>> GetAuthorBooks(int id) = 0;
 
 protected:
     ~UseCases() = default;
