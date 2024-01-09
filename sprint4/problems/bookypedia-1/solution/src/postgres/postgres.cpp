@@ -1,6 +1,7 @@
 #include "postgres.h"
 #include <pqxx/zview.hxx>
 #include <pqxx/pqxx>
+#include <iostream>
 namespace postgres {
 
 using namespace std::literals;
@@ -14,27 +15,33 @@ void AuthorRepositoryImpl::Save(const domain::Author& author) {
 }
 
 void BookRepositoryImpl::Save(const domain::Book& book) {
-    pqxx::work work{ connection_ };
-    work.exec_params("INSERT INTO books (id, author_id, title, publication_year) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET author_id=$2, title=$3, publication_year=$4;"_zv,
-book.GetId().ToString(), book.GetAuthorIdStr(), book.GetTitle(), book.GetPublicationYear());
-    work.commit();
+
+    pqxx::read_transaction read(connection_);
+    auto str = "SELECT name FROM authors WHERE id = \'" + book.GetAuthorIdStr() + "\'";
+    std::cout << str.c_str() << "\n";
+    auto query_text = pqxx::zview(str.c_str());
+    int k = 1;
+    auto [name] = read.query1<std::string>(query_text);
+
+
+
+    if (name != "A") {
+        pqxx::work work{ connection_ };
+        work.exec_params("INSERT INTO books (id, author_id, title, publication_year) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET author_id=$2, title=$3, publication_year=$4;"_zv,
+            book.GetId().ToString(), book.GetAuthorIdStr(), book.GetTitle(), book.GetPublicationYear());
+        work.commit();
+    }
 }
 
 void BookRepositoryImpl::Save(domain::BookId book_id, int author_id, const std::string& title, uint16_t publication_year) {
     std::string result;
-    pqxx::read_transaction read(connection_);
-    auto query_text = "SELECT name, id FROM authors ORDER BY name"_zv;
-    int k = 1;
-
-    for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        if (k++ == author_id) {
-            result = id;
-        }
-    }
-    pqxx::work work{ connection_ };
+   
+     pqxx::work work{ connection_ };
     work.exec_params("INSERT INTO books (id, author_id, title, publication_year) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET author_id=$2, title=$3, publication_year=$4;"_zv,
-        book_id.ToString(), result, title, publication_year);
-    work.commit();
+     book_id.ToString(), result, title, publication_year);
+      work.commit();
+   
+    
 }
 
 
