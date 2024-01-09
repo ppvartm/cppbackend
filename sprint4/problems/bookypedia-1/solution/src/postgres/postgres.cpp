@@ -28,10 +28,10 @@ void BookRepositoryImpl::Save(domain::BookId book_id, int author_id, const std::
     int k = 1;
 
     for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        if (k == author_id) {
+        std::cout << name << "\n";
+        if (k++ == author_id) {
             result = id;
         }
-        k++;
     }
     std::cout << result << "\n";
     std::cout << book_id.ToString() << "\n";
@@ -49,10 +49,10 @@ std::string AuthorRepositoryImpl::GetAuthorId(int i) {
     auto query_text = "SELECT name, id FROM authors ORDER BY name"_zv;
     int k = 1;
     for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        if (k == i) {
+        if (k++ == i) {
             result = id;
         }
-        k++;
+
     }
     return result;
 }
@@ -94,12 +94,11 @@ std::vector<std::pair<std::string, uint16_t>> BookRepositoryImpl::GetAuthorBooks
     pqxx::read_transaction read(connection_);
     auto query_text = "SELECT name, id FROM authors ORDER BY name"_zv;
     int k = 1;
-    std::cout << i << "\n";
     for (auto [name, id] : read.query<std::string, std::string>(query_text)) {
-        if (k == i) {
+        std::cout << name << "\n";
+        if (k++ == i) {
             author_id = id;
         }
-        k++;
     }
  
     std::vector<std::pair<std::string, uint16_t>> result;

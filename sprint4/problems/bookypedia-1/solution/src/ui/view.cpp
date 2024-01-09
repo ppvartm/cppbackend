@@ -161,6 +161,7 @@ std::vector<detail::BookInfo> View::GetBooks() const {
 std::vector<detail::BookInfo> View::GetAuthorBooks(const std::string& author_id) const {
     std::vector<detail::BookInfo> books;
     auto result = use_cases_.GetAuthorBooks(std::stoi(author_id)+ 1);
+    std::cout << author_id << "\n";
     for (int i = 0; i < result.size(); ++i) {
         books.push_back({ result[i].first ,result[i].second});
     }
