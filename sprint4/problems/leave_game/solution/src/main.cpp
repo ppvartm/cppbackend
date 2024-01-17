@@ -87,7 +87,7 @@ namespace {
 
     
 }  // namespace
-constexpr const char DB_URL_ENV_NAME[]{ "database_url" };
+constexpr const char GAME_DB_URL[]{ "database_url" };
 
 std::string GetDatabaseUrl(const char* DB_URL_ENV_NAME) {
     std::string db_url;
@@ -137,8 +137,8 @@ int main(int argc, const char* argv[]) {
         if (!std::filesystem::exists(static_dir_path))
             throw std::runtime_error("Static files dir doesn't exist");
 
-        postgres_tools::PostgresDatabase database("postgres://postgres:ppvartm2828@localhost:5432/test_db");
-
+        //postgres_tools::PostgresDatabase database("postgres://postgres:ppvartm2828@localhost:5432/test_db");
+        postgres_tools::PostgresDatabase database(GetDatabaseUrl(GAME_DB_URL));
         // 1. maps from file and setting random player position
         model::Game game = json_loader::LoadGame(config_file_path);
         if (args->random_spawn == "random")
