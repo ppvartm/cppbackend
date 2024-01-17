@@ -571,7 +571,7 @@ namespace http_handler {
                 };
 
             if ((req.method_string() == "GET") &&
-                (static_cast<std::string>(req.target()) == Endpoints::API_GetRecords_Endpoint())) {
+                (static_cast<std::string>(req.target()).substr(0, Endpoints::API_GetRecords_Endpoint().length()) == Endpoints::API_GetRecords_Endpoint())) {
                 
                 boost::asio::dispatch(strand_, [send = std::forward<Send>(send), this, req]() {
                     const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
@@ -579,12 +579,44 @@ namespace http_handler {
                         StringResponse response = this->MakeStringResponse(status, answ, req.version(), req.keep_alive(), "application/json");
                         response.set(http::field::cache_control, "no-cache");
                         return response;
-                        };
-                                        
-                    auto records = database_.GetRecords(); 
+                    };
+                    
+                    int maxItems = 100;
+                    int start = 0;
+                    std::cout << static_cast<std::string>(req.target()).substr(Endpoints::API_GetRecords_Endpoint().length() + 1, 5) << "\n";
+                    if (static_cast<std::string>(req.target()).substr(Endpoints::API_GetRecords_Endpoint().length() + 1, 5) == "start")
+                    {
+                        std::string temp = static_cast<std::string>(req.target()).substr(Endpoints::API_GetRecords_Endpoint().length() + 7);
+                        int i = 0;
+                        std::string string_start;
+                        std::string string_maxItems;
+                        while (temp[i] != '&') {
+                            string_start += temp[i++];
+                            if (i == temp.size())
+                                break;
+                        }
+                        if (i != temp.size()) {
+                            i += 10;
+                            std::cout << temp[i] << "\n";
+                            while (i != temp.size()) {
+                                string_maxItems += temp[i++];
+                            }
+                        }
+                        start = std::stoi(string_start);
+                        maxItems = std::stoi(string_maxItems);
+                    }
 
-                   boost::json::array result;
-                    for (auto& p : records) {
+                    if (maxItems > 100)
+                        return;
+
+                    auto records = database_.GetRecords(); 
+                    std::vector<postgres_tools::Record> sub_records;
+                    if(start + maxItems > records.size())
+                        sub_records.assign(records.begin() + start, records.end());
+                    else
+                        sub_records.assign(records.begin() + start, records.begin() + start + maxItems);
+                    boost::json::array result;
+                    for (auto& p : sub_records) {
                         result.push_back({
                             {"name", p.name},
                             {"score", p.score},
@@ -617,6 +649,7 @@ namespace http_handler {
                 return this->MakeStringResponse(status, text, req.version(), req.keep_alive(), content_type);
             };
  
+           
             if (static_cast<std::string>(req.target()) == Endpoints::API_Maps_Endpoint().substr(0,12) || static_cast<std::string>(req.target()).substr(0, 13) == Endpoints::API_Maps_Endpoint()) {
                 GetAPI_info_RequestHand(req, send);
                 return;
@@ -643,7 +676,7 @@ namespace http_handler {
                 API_TimeTick_RequestHand(req, send);
                 return;
             }
-            if (static_cast<std::string>(req.target()) == Endpoints::API_GetRecords_Endpoint()) {
+            if (static_cast<std::string>(req.target()).substr(0, Endpoints::API_GetRecords_Endpoint().length()) == Endpoints::API_GetRecords_Endpoint()) {
                 API_GetRecords_RequestHand(req, send);
                 return;
             }
