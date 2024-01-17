@@ -85,15 +85,15 @@ namespace {
         return args;
     }
 
-    constexpr const char GAME_DB_URL[]{ "database_url" };
+    constexpr const char GAME_DB_URL[]{"GAME_DB_URL"};
 
-    std::string GetDatabaseUrl(const char* DB_URL_ENV_NAME) {
+    std::string GetDatabaseUrl() {
         std::string db_url;
-        if (const char* url = std::getenv(DB_URL_ENV_NAME)) {
+        if (const auto* url = std::getenv(GAME_DB_URL)) {
             db_url = url;
         }
         else {
-            throw std::runtime_error(DB_URL_ENV_NAME + " environment variable not found"s);
+            throw std::runtime_error(GAME_DB_URL + " environment variable not found"s);
         }
         return db_url;
     }
@@ -141,8 +141,8 @@ int main(int argc, const char* argv[]) {
             throw std::runtime_error("Static files dir doesn't exist");
 
        // postgres_tools::PostgresDatabase database("postgres://postgres:ppvartm2828@localhost:5432/test_db");
-        postgres_tools::PostgresDatabase database("postgres://postgres:Mys3Cr3t@172.17.0.2:5432/");
-       // postgres_tools::PostgresDatabase database(GetDatabaseUrl(GAME_DB_URL));
+       // postgres_tools::PostgresDatabase database("postgres://postgres:Mys3Cr3t@172.17.0.2:5432/");
+        postgres_tools::PostgresDatabase database(GetDatabaseUrl());
         // 1. maps from file and setting random player position
         model::Game game = json_loader::LoadGame(config_file_path);
         if (args->random_spawn == "random")
