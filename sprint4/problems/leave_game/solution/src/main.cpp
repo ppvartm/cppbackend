@@ -3,6 +3,7 @@
 #include <thread>
 #include <memory>
 #include <cstdlib>
+#include <stdexcept>
 
 
 #include <boost/program_options.hpp>
@@ -85,22 +86,19 @@ namespace {
         return args;
     }
 
-    constexpr const char GAME_DB_URL[]{"GAME_DB_URL"};
-
-    std::string GetDatabaseUrl() {
-        std::string db_url;
-        if (const auto* url = std::getenv(GAME_DB_URL)) {
-            db_url = url;
-        }
-        else {
-            throw std::runtime_error(GAME_DB_URL + " environment variable not found"s);
-        }
-        return db_url;
-    }
-
-
 }  // namespace
+constexpr const char GAME_DB_URL[]{"GAME_DB_URL"};
 
+std::string GetDatabaseUrl() {
+    std::string db_url;
+    if (const auto* url = std::getenv(GAME_DB_URL)) {
+        db_url = url;
+    }
+    else {
+        throw std::runtime_error(GAME_DB_URL + " environment variable not found"s);
+    }
+    return db_url;
+}
 
 
 int main(int argc, const char* argv[]) {

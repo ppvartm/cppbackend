@@ -8,7 +8,7 @@ using namespace std::literals;
 
 namespace {
 
-constexpr const char DB_URL_ENV_NAME[]{"BOOKYPEDIA_DB_URL"};
+constexpr const char DB_URL_ENV_NAME[]{"GAME_DB_URL"};
 
 bookypedia::AppConfig GetConfigFromEnv() {
     bookypedia::AppConfig config;
