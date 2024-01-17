@@ -141,7 +141,8 @@ int main(int argc, const char* argv[]) {
             throw std::runtime_error("Static files dir doesn't exist");
 
        // postgres_tools::PostgresDatabase database("postgres://postgres:ppvartm2828@localhost:5432/test_db");
-        postgres_tools::PostgresDatabase database(GetDatabaseUrl(GAME_DB_URL));
+        postgres_tools::PostgresDatabase database("postgres://postgres:Mys3Cr3t@172.17.0.2:5432/");
+       // postgres_tools::PostgresDatabase database(GetDatabaseUrl(GAME_DB_URL));
         // 1. maps from file and setting random player position
         model::Game game = json_loader::LoadGame(config_file_path);
         if (args->random_spawn == "random")
