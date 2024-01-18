@@ -103,8 +103,6 @@ std::string GetDatabaseUrl() {
 
 int main(int argc, const char* argv[]) {
 
-
-
     try {
         logging::add_common_attributes();
         logging::add_console_log(
@@ -138,8 +136,7 @@ int main(int argc, const char* argv[]) {
         if (!std::filesystem::exists(static_dir_path))
             throw std::runtime_error("Static files dir doesn't exist");
 
-       // postgres_tools::PostgresDatabase database("postgres://postgres:ppvartm2828@localhost:5432/test_db");
-       // postgres_tools::PostgresDatabase database("postgres://postgres:Mys3Cr3t@172.17.0.2:5432/");
+
         postgres_tools::PostgresDatabase database(GetDatabaseUrl());
         // 1. maps from file and setting random player position
         model::Game game = json_loader::LoadGame(config_file_path);
@@ -196,15 +193,13 @@ int main(int argc, const char* argv[]) {
         RunWorkers(std::max(1u, num_threads), [&ioc] {
             ioc.run();
         });
-      //  std::cout << "KILL\n";
-       // if (is_save)
+
             handler.Serialize();
 
         ServerStopLog(0);
-  //      std::cin.get();
     } catch (const std::exception& ex) {
         ServerStopLog(EXIT_FAILURE, ex.what());
         return EXIT_FAILURE;
     }
-  //  std::cin.get();
+
 }

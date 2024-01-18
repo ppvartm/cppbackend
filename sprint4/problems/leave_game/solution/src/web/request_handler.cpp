@@ -12,60 +12,70 @@ namespace http_handler {
                     {"message","Map not found"} };
         return val;
     }
+
     json::value BadRequest() {
         json::value val = {
                    {"code", "badRequest"},
                    {"message","Bad request"} };
         return val;
     }
+
     json::value EmptyNickname() {
         json::value val = {
                          {"code", "invalidArgument"},
                          {"message","Invalid Name"} };
         return val;
     }
+
     json::value JsonParseError() {
         json::value val = {
                         {"code", "invalidArgument"},
                         {"message","Join game request parse error"} };
         return val;
     }
+
     json::value NotPostRequest() {
         json::value val = {
                                {"code", "invalidMethod"},
                                {"message","Only POST method is expected"} };
         return val;
     }
+
     json::value AuthorizationMissing() {
         json::value val = {
             {"code", "invalidToken"},
             {"message","Authorization header is missing"}};
         return val;
     }
+
     json::value PlayerNotFound() {
         json::value val = {
            {"code", "unknownToken"},
            {"message","Player token has not been found"} };
         return val;
     }
+
     json::value InvalidMethod() {
         json::value val = {
            {"code", "invalidMethod"},
            {"message","Invalid method"} };
         return val;
     }
+
     json::value InvalidContentType() {
         json::value val = {
                    {"code", "invalidArgument"},
                    {"message","Invalid content type"} };
         return val;
     }
+
     json::value ErrorParseAction() {
         json::value val = {
            {"code", "invalidArgument"},
            {"message","Failed to parse action"} };
         return val;
     }
+
     json::value ErrorParseTick(){
         json::value val = {
           {"code", "invalidArgument"},
@@ -119,9 +129,11 @@ namespace http_handler {
             return "audio/mpeg";
         return "application/octet-stream";
     }
+
     bool IsFileExist(const fs::path& file_path) {
         return std::filesystem::exists(file_path);
     }
+
     bool IsAccessibleFile(fs::path file_path, fs::path base_path) {
         file_path = fs::weakly_canonical(file_path);
         base_path = fs::weakly_canonical(base_path);
@@ -133,6 +145,7 @@ namespace http_handler {
         }
         return true;
     }
+
     http::file_body::value_type ReadFile(const fs::path& file_path) {
         http::file_body::value_type file;
         boost::system::error_code ec;
@@ -141,6 +154,7 @@ namespace http_handler {
           throw("Failed to open static-file: " + ec.message());
         return file;
     }
+
     std::string UrlDeCode(const std::string& url_path) {
         std::string answ;
         auto it = url_path.begin();
@@ -178,6 +192,7 @@ namespace http_handler {
         response.content_length(0);
         return response;
     }
+
     StringResponse RequestHandler::MakeStringResponse(http::status status, std::string_view body, unsigned http_version, bool keep_alive, boost::beast::string_view content_type) {
         StringResponse response(status, http_version);
         response.set(http::field::content_type, content_type);
@@ -186,6 +201,7 @@ namespace http_handler {
         response.keep_alive(keep_alive);
         return response;
     }
+
     FileResponse RequestHandler::GETMakeFileResponse(http::status status, fs::path file_path, unsigned http_version, bool keep_alive, std::string content_type) {
         FileResponse response(status, http_version);
         response.set(http::field::content_type, content_type);
@@ -193,6 +209,7 @@ namespace http_handler {
         response.prepare_payload();
         return response;
     }
+
     void RequestHandler::SetFilePath(fs::path file_path) {
         path_ = file_path;
     }

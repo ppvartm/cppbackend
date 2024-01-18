@@ -20,6 +20,7 @@ namespace app {
 
     //move the dog; associated with certain dog and certain game-session
 	class Player {
+
 	public:
         Player() {};
 

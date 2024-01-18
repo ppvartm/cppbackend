@@ -18,7 +18,7 @@
 namespace model {
 
 
-    using Dimension = long long int;
+    using Dimension = uint64_t;
     using Coord = Dimension;
     using DogSpeedFromJson = double;
     
@@ -534,9 +534,11 @@ namespace model {
         using GameSessions = std::vector<std::shared_ptr<GameSession>>;
 
         void AddMap(const Map& map);
+
         const Maps& GetMaps() const noexcept {
             return maps_;
         }
+
         const Map* FindMap(const Map::Id& id) const noexcept {
             if (auto it = map_id_to_index_.find(id); it != map_id_to_index_.end()) {
                 return &maps_.at(it->second);
@@ -551,6 +553,7 @@ namespace model {
                     return p;
             return  game_sessions_.emplace_back(std::make_shared<GameSession>(*FindMap(id), is_rand_game_spawn_, loot_generator_params_));
         }
+
         void SetRandomSpawn() {
             is_rand_game_spawn_ = true;
         }
@@ -559,6 +562,7 @@ namespace model {
             loot_generator_params_.period = period;
             loot_generator_params_.probability = probability;
         }
+
         const GameSessions& GetGameSessions() const {
             return game_sessions_;
         }

@@ -15,7 +15,6 @@ void Map::AddOffice(const Office& office) {
     try {
         warehouse_id_to_index_.emplace(o.GetId(), index);
     } catch (...) {
-         // Удаляем офис из вектора, если не удалось вставить в unordered_map
         offices_.pop_back();
         throw;
     }
@@ -82,6 +81,7 @@ void GameSession::GenerateLoot(std::chrono::milliseconds time_delta) {
         PushLostObject({ type, pos, value });
     }
 }
+
 void GameSession::GenerateForced() {
     int type = rand() % map_.GetMaxCountOfLootObjects();
     Position pos;
@@ -105,12 +105,14 @@ void GameSession::GenerateForced() {
     }
     PushLostObject({ type, pos, value });
 }
+
 Dog& GameSession::GetDog(size_t id) const {
     auto dog = dogs_.begin();
     for (int i = 0; i < id; ++i)
         ++dog;
     return *(dog->second);
 }
+
 std::pair<size_t, LostObject> GameSession::GetLostObject(size_t id) const {
     auto lost_object = lost_objects_.begin();
     for (int i = 0; i < id; ++i)
@@ -145,6 +147,7 @@ void GameSession::CollectionItems(double time_delta) {
     }
 
 }
+
 void GameSession::LeaveItems(double time_delta) {
     for (size_t g = 0; g < dogs_.size(); ++g) {
         auto gatherer = GetDog(g);
@@ -161,7 +164,6 @@ void GameSession::LeaveItems(double time_delta) {
     }
 }
 
-
 void Game::AddMap(const Map& map) {
     const size_t index = maps_.size();
     if (auto [it, inserted] = map_id_to_index_.emplace(map.GetId(), index); !inserted) {
@@ -175,8 +177,6 @@ void Game::AddMap(const Map& map) {
         }
     }
 }
-
-
 
 void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Road& road)
 {
@@ -194,6 +194,7 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Road&
             {"y1", road.GetEnd().y}
     };
 }
+
 void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Building& build) {
     jv = {
         {"x", build.GetBounds().position.x},
@@ -202,6 +203,7 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Build
         {"h", build.GetBounds().size.height}
     };
 }
+
 void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Office& office) {
     jv = {
         {"id", *office.GetId()},
@@ -211,6 +213,7 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Offic
         {"offsetY", (int)office.GetOffset().dy}
     };
 }
+
 void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Map& map) {
     jv = {
         {"id", *map.GetId()},
@@ -220,11 +223,13 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Map& 
         {"offices", map.GetOffices()}
     };
 }
+
 void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, Game const& game) {
     jv = {
         {"maps", game.GetMaps()}
     };
 }
+
 void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::pair<Map, boost::json::array>& map_and_json_data) {
     jv = {
             {"id", *map_and_json_data.first.GetId()},
@@ -235,6 +240,7 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::
             {"lootTypes", map_and_json_data.second}
     };
 }
+
 void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::pair<size_t, LostObject>& lost_object) {
     jv = {
         {"id", lost_object.first},

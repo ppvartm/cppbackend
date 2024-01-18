@@ -38,7 +38,6 @@ namespace Timer {
 
         void OnTick(boost::system::error_code ec) {
             using namespace std::chrono;
-            assert(strand_.running_in_this_thread());
 
             if (!ec) {
                 auto this_tick = Clock::now();

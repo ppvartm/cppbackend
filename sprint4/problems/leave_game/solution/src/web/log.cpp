@@ -8,6 +8,7 @@ void MyFormatter(logging::record_view const& rec, logging::formatting_ostream& s
     };
     strm << boost::json::serialize(jv);
 }
+
 void ServerStartLog(unsigned port, boost::asio::ip::address ip) {
     boost::json::value data = {
         {"port", port},
@@ -15,6 +16,7 @@ void ServerStartLog(unsigned port, boost::asio::ip::address ip) {
     };
     BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, data) << "server started";
 }
+
 void ServerStopLog(unsigned returns_code, std::string_view ex) {
     boost::json::value data;
     if (ex == "")
@@ -28,6 +30,7 @@ void ServerStopLog(unsigned returns_code, std::string_view ex) {
     };
     BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, data) << "server exited";
 }
+
 void ServerErrorLog(unsigned code, std::string_view message, std::string_view place) {
     boost::json::value data{
         {"code", code},

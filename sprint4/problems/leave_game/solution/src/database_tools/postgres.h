@@ -51,12 +51,9 @@ namespace postgres_tools {
 						AddRecord(p.second->GetName(), p.second->GetScore(), p.second->GetPlayTime());
 		}
 
-
 	private:
-		pqxx::connection conn_;
-		
+		pqxx::connection conn_;		
 	};
-
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Record& record);
 

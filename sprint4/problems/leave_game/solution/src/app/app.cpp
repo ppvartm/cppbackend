@@ -22,6 +22,7 @@ namespace app {
         return valid_roads;
 
     }
+
     model::Position Player::NewCorrectPosition(model::Position new_position) {
         auto roads = GetRoadsWithDog();
         auto answer = new_position;
@@ -77,6 +78,7 @@ namespace app {
         }
         return answer;
     }
+
     void Player::MoveDog(double time_delta) {  //время в миллисикундах
        
         if (dog_->GetSpeed().s_x == 0. && dog_->GetSpeed().s_y == 0.)
