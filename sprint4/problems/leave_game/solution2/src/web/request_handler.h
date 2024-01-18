@@ -85,12 +85,20 @@ namespace http_handler {
     public:
         using Strand = boost::asio::strand<boost::asio::io_context::executor_type>;
 
-        explicit RequestHandler(model::Game& game, extra_data::Json_data& lost_objects_json_data, Strand& strand, postgres_tools::PostgresDatabase& database)
+        //explicit RequestHandler(model::Game& game, extra_data::Json_data& lost_objects_json_data, Strand& strand, postgres_tools::PostgresDatabase& database)
+        //    : game_{ game }, lost_objects_json_data_(lost_objects_json_data), strand_{ strand },
+        //    serializating_listener_{ players_, game_, tokens_ }, database_{ database },
+        //    game_timer_{ players_, tokens_, game_.GetGameSessions(), strand_, serializating_listener_, database_ }{
+
+        //}
+
+        explicit RequestHandler(model::Game& game, extra_data::Json_data& lost_objects_json_data, Strand& strand)
             : game_{ game }, lost_objects_json_data_(lost_objects_json_data), strand_{ strand },
-            serializating_listener_{ players_, game_, tokens_ }, database_{ database },
-            game_timer_{ players_, tokens_, game_.GetGameSessions(), strand_, serializating_listener_, database_ }{
+            serializating_listener_{ players_, game_, tokens_ },
+            game_timer_{ players_, tokens_, game_.GetGameSessions(), strand_, serializating_listener_} {
 
         }
+
         
         RequestHandler(const RequestHandler&) = delete;
 
@@ -561,7 +569,7 @@ namespace http_handler {
             return;
         }
 
-        template <typename Body, typename Allocator, typename Send>
+       /* template <typename Body, typename Allocator, typename Send>
         void API_GetRecords_RequestHand(const http::request<Body, http::basic_fields<Allocator>>& req, Send& send) {
             const auto json_text_response = [&req, this](json::value&& jv, http::status status) {
                 std::string answ = json::serialize(jv);
@@ -638,7 +646,7 @@ namespace http_handler {
             }
             return;
         }
-        
+        */
 
         template <typename Body, typename Allocator, typename Send>
         void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
@@ -673,10 +681,10 @@ namespace http_handler {
                 API_TimeTick_RequestHand(req, send);
                 return;
             }
-            if (static_cast<std::string>(req.target()).substr(0, Endpoints::API_GetRecords_Endpoint().length()) == Endpoints::API_GetRecords_Endpoint()) {
+           /* if (static_cast<std::string>(req.target()).substr(0, Endpoints::API_GetRecords_Endpoint().length()) == Endpoints::API_GetRecords_Endpoint()) {
                 API_GetRecords_RequestHand(req, send);
                 return;
-            }
+            }*/
 
            std::string answ = json::serialize(BadRequest());   //invalid request
            auto response = text_response(http::status::bad_request, answ, "application/json");
@@ -715,7 +723,7 @@ namespace http_handler {
 
         Strand& strand_;
         app_serialization::SerializingListener serializating_listener_;
-        postgres_tools::PostgresDatabase& database_;
+      //  postgres_tools::PostgresDatabase& database_;
 
         app::GameTimer game_timer_;
         

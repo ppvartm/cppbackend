@@ -140,7 +140,7 @@ int main(int argc, const char* argv[]) {
 
        // postgres_tools::PostgresDatabase database("postgres://postgres:ppvartm2828@localhost:5432/test_db");
        // postgres_tools::PostgresDatabase database("postgres://postgres:Mys3Cr3t@172.17.0.2:5432/");
-        postgres_tools::PostgresDatabase database(GetDatabaseUrl());
+      //  postgres_tools::PostgresDatabase database(GetDatabaseUrl());
         // 1. maps from file and setting random player position
         model::Game game = json_loader::LoadGame(config_file_path);
         if (args->random_spawn == "random")
@@ -154,7 +154,7 @@ int main(int argc, const char* argv[]) {
 
  
         // 3. http_handler + logging decorator
-        http_handler::RequestHandler handler {game, lost_objects_json_data, strand, database };
+        http_handler::RequestHandler handler {game, lost_objects_json_data, strand};
         handler.SetFilePath(static_dir_path);
         handler.SetSerializationParams(is_save, is_auto_save, save_interval, state_file_path);
         if (std::filesystem::exists(state_file_path))
