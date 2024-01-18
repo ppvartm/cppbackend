@@ -363,6 +363,11 @@ namespace model {
 
         void SetSpeed(Speed speed) {
             speed_ = speed;
+
+         /*   if (speed.s_x == 0. && speed.s_y == 0.)
+                IncreaceDownTime(time_delta);
+            if (speed.s_x != 0. || speed.s_y != 0.)
+                ResetDownTime();*/
         }
 
         void SetBagCapacity(size_t cap) {
@@ -412,6 +417,8 @@ namespace model {
             ar& id_;
             ar& bag_;
             ar& score_;
+            ar& downtime_;
+            ar& playtime_;
         }
 
         double GetDownTime() {

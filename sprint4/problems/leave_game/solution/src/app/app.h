@@ -127,7 +127,7 @@ namespace app {
             std::vector<model::Dog::Id> list_of_id_for_dog_deletion;
             std::vector<Token> tokens_for_deletion;
             for (auto& p : token_to_player_)
-                if (p.second->GetDownTime() > p.second->GetRetirementTime())
+                if (p.second->GetDownTime() >= p.second->GetRetirementTime())
                     tokens_for_deletion.push_back(p.first);
             for (auto& p : tokens_for_deletion) {
                 list_of_id_for_dog_deletion.push_back(token_to_player_[p]->GetDogId());
