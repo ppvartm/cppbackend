@@ -364,10 +364,8 @@ namespace model {
         void SetSpeed(Speed speed) {
             speed_ = speed;
 
-         /*   if (speed.s_x == 0. && speed.s_y == 0.)
-                IncreaceDownTime(time_delta);
             if (speed.s_x != 0. || speed.s_y != 0.)
-                ResetDownTime();*/
+                ResetDownTime();
         }
 
         void SetBagCapacity(size_t cap) {

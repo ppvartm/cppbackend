@@ -64,8 +64,8 @@ namespace app {
         void CheckRetirementTime(double time_delta) {
             if (dog_->GetSpeed().s_x == 0. && dog_->GetSpeed().s_y == 0.)
                 dog_->IncreaceDownTime(time_delta);
-            if (dog_->GetSpeed().s_x != 0. || dog_->GetSpeed().s_y != 0.)
-                dog_->ResetDownTime();
+          /*  if (dog_->GetSpeed().s_x != 0. || dog_->GetSpeed().s_y != 0.)
+                dog_->ResetDownTime();*/
         }
 
         double GetDownTime() {

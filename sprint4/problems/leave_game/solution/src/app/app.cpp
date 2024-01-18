@@ -78,11 +78,7 @@ namespace app {
         return answer;
     }
     void Player::MoveDog(double time_delta) {  //время в миллисикундах
-       
-        if (dog_->GetSpeed().s_x == 0. && dog_->GetSpeed().s_y == 0.)
-            dog_->IncreaceDownTime(time_delta / 1000);
-        if (dog_->GetSpeed().s_x != 0. || dog_->GetSpeed().s_y != 0.)
-            dog_->ResetDownTime();
+      
 
         model::Position new_position = { 
             dog_->GetPosition().x + dog_->GetSpeed().s_x * time_delta / CLOCKS_PER_SEC,
@@ -93,7 +89,7 @@ namespace app {
             SetDogSpeed(0., 0.);
         dog_->SetPosition(new_correct_position);
 
-
+        CheckRetirementTime(time_delta / CLOCKS_PER_SEC);
 
     }
 
