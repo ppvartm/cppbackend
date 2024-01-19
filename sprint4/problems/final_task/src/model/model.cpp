@@ -31,22 +31,22 @@ void GameSession::AddDog(std::shared_ptr<Dog> dog) {
         pos = { static_cast<double>(map_.GetRoads().begin()->GetStart().x),static_cast<double>(map_.GetRoads().begin()->GetStart().y) };
     }
     else {
-        auto road = map_.GetRoads()[rand() % map_.GetRoads().size()];
+        auto road = map_.GetRoads()[random_int() % map_.GetRoads().size()];
         if (road.IsVertical() && road.GetEnd().y > road.GetStart().y) {
             pos.x = road.GetStart().x;
-            pos.y = (rand() % (road.GetEnd().y - road.GetStart().y)) + road.GetStart().y;
+            pos.y = (random_int() % (road.GetEnd().y - road.GetStart().y)) + road.GetStart().y;
         }
         if (road.IsVertical() && road.GetEnd().y < road.GetStart().y) {
             pos.x = road.GetStart().x;
-            pos.y = (rand() % (road.GetStart().y - road.GetEnd().y)) + road.GetEnd().y;
+            pos.y = (random_int() % (road.GetStart().y - road.GetEnd().y)) + road.GetEnd().y;
         }
         if (road.IsHorizontal() && road.GetEnd().x > road.GetStart().x) {
             pos.y = road.GetStart().y;
-            pos.x = (rand() % (road.GetEnd().x - road.GetStart().x)) + road.GetStart().x;
+            pos.x = (random_int() % (road.GetEnd().x - road.GetStart().x)) + road.GetStart().x;
         }
         if (road.IsHorizontal() && road.GetEnd().x < road.GetStart().x) {
             pos.y = road.GetStart().y;
-            pos.x = (rand() % (road.GetStart().x - road.GetEnd().x)) + road.GetEnd().x;
+            pos.x = (random_int() % (road.GetStart().x - road.GetEnd().x)) + road.GetEnd().x;
         }
     }
     dog->SetPosition(pos);
@@ -58,50 +58,50 @@ void GameSession::GenerateLoot(std::chrono::milliseconds time_delta) {
     unsigned need_to_gen = loot_generator_.Generate(time_delta, GetCurrentLostObjects().size(), dogs_.size());
     srand(time(NULL));
     for (unsigned i = 0; i < need_to_gen; ++i) {
-        int type = rand() % map_.GetMaxCountOfLootObjects();
+        int type = random_int() % map_.GetMaxCountOfLootObjects();
         int value = map_.GetPriceList().find(type)->second;
         Position pos;
-        auto road = map_.GetRoads()[rand() % map_.GetRoads().size()];
+        auto road = map_.GetRoads()[random_int() % map_.GetRoads().size()];
         if (road.IsVertical() && road.GetEnd().y > road.GetStart().y) {
             pos.x = road.GetStart().x;
-            pos.y = (rand() % (road.GetEnd().y - road.GetStart().y)) + road.GetStart().y;
+            pos.y = (random_int() % (road.GetEnd().y - road.GetStart().y)) + road.GetStart().y;
         }
         if (road.IsVertical() && road.GetEnd().y < road.GetStart().y) {
             pos.x = road.GetStart().x;
-            pos.y = (rand() % (road.GetStart().y - road.GetEnd().y)) + road.GetEnd().y;
+            pos.y = (random_int() % (road.GetStart().y - road.GetEnd().y)) + road.GetEnd().y;
         }
         if (road.IsHorizontal() && road.GetEnd().x > road.GetStart().x) {
             pos.y = road.GetStart().y;
-            pos.x = (rand() % (road.GetEnd().x - road.GetStart().x)) + road.GetStart().x;
+            pos.x = (random_int() % (road.GetEnd().x - road.GetStart().x)) + road.GetStart().x;
         }
         if (road.IsHorizontal() && road.GetEnd().x < road.GetStart().x) {
             pos.y = road.GetStart().y;
-            pos.x = (rand() % (road.GetStart().x - road.GetEnd().x)) + road.GetEnd().x;
+            pos.x = (random_int() % (road.GetStart().x - road.GetEnd().x)) + road.GetEnd().x;
         }
         PushLostObject({ type, pos, value });
     }
 }
 
 void GameSession::GenerateForced() {
-    int type = rand() % map_.GetMaxCountOfLootObjects();
+    int type = random_int() % map_.GetMaxCountOfLootObjects();
     Position pos;
     int value = map_.GetPriceList().find(type)->second;
-    auto road = map_.GetRoads()[rand() % map_.GetRoads().size()];
+    auto road = map_.GetRoads()[random_int() % map_.GetRoads().size()];
     if (road.IsVertical() && road.GetEnd().y > road.GetStart().y) {
         pos.x = road.GetStart().x;
-        pos.y = (rand() % (road.GetEnd().y - road.GetStart().y)) + road.GetStart().y;
+        pos.y = (random_int() % (road.GetEnd().y - road.GetStart().y)) + road.GetStart().y;
     }
     if (road.IsVertical() && road.GetEnd().y < road.GetStart().y) {
         pos.x = road.GetStart().x;
-        pos.y = (rand() % (road.GetStart().y - road.GetEnd().y)) + road.GetEnd().y;
+        pos.y = (random_int() % (road.GetStart().y - road.GetEnd().y)) + road.GetEnd().y;
     }
     if (road.IsHorizontal() && road.GetEnd().x > road.GetStart().x) {
         pos.y = road.GetStart().y;
-        pos.x = (rand() % (road.GetEnd().x - road.GetStart().x)) + road.GetStart().x;
+        pos.x = (random_int() % (road.GetEnd().x - road.GetStart().x)) + road.GetStart().x;
     }
     if (road.IsHorizontal() && road.GetEnd().x < road.GetStart().x) {
         pos.y = road.GetStart().y;
-        pos.x = (rand() % (road.GetStart().x - road.GetEnd().x)) + road.GetEnd().x;
+        pos.x = (random_int() % (road.GetStart().x - road.GetEnd().x)) + road.GetEnd().x;
     }
     PushLostObject({ type, pos, value });
 }
@@ -210,7 +210,7 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const Offic
         {"x", office.GetPosition().x},
         {"y", office.GetPosition().y},
         {"offsetX", office.GetOffset().dx},
-        {"offsetY", (int)office.GetOffset().dy}
+        {"offsetY", static_cast<int>(office.GetOffset().dy)}
     };
 }
 
@@ -246,6 +246,10 @@ void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::
         {"id", lost_object.first},
         {"type", lost_object.second.type}
     };
+}
+
+int random_int() {
+    return rand();
 }
 
 }  // namespace model

@@ -600,4 +600,7 @@ namespace model {
     void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::pair<Map, boost::json::array>& map_and_json_data);
 
     void tag_invoke(boost::json::value_from_tag, boost::json::value& jv, const std::pair<size_t, LostObject>& lost_object);
+
+    int random_int();
+
 }  // namespace model

@@ -44,5 +44,11 @@ add_executable(game_server
         src/database_tools/postgres.cpp         
 ) 
 
+add_executable (model_tests
+        tests/model_tests.cpp
+)
+
 target_link_libraries(game_server Threads::Threads CONAN_PKG::libpq CONAN_PKG::libpqxx model_lib CONAN_PKG::boost)
 
+target_include_directories(model_tests PRIVATE CONAN_PKG::catch2 ) 
+target_link_libraries(model_tests  CONAN_PKG::catch2 model_lib )

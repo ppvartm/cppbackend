@@ -79,6 +79,13 @@ namespace app {
         return answer;
     }
 
+    void Player::CheckRetirementTime(double time_delta) {
+        if (dog_->GetSpeed().s_x == 0. && dog_->GetSpeed().s_y == 0.)
+            dog_->IncreaceDownTime(time_delta);
+        if (dog_->GetSpeed().s_x != 0. || dog_->GetSpeed().s_y != 0.)
+            dog_->ResetDownTime();
+    }
+
     void Player::MoveDog(double time_delta) {  //время в миллисикундах
        
         if (dog_->GetSpeed().s_x == 0. && dog_->GetSpeed().s_y == 0.)
@@ -107,4 +114,28 @@ namespace app {
             ss << rand() % 9;
         return ss.str();
 	}
+
+    void GameTimer::Tick(std::chrono::milliseconds time_delta) {
+        boost::asio::dispatch(strand_, [this, time_delta]() {
+            players_.MoveAllDogs(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
+            players_.IncreaseAllTimes(std::chrono::duration<double>(time_delta).count());
+            auto list_id_for_deletion = tokens_.CheckRetirementTime();
+
+            for (int i = 0; i < game_sessions_.size(); ++i)
+                database_.AddRecordsAllDogs(*game_sessions_[i], list_id_for_deletion);
+
+            for (int i = 0; i < game_sessions_.size(); ++i)
+                game_sessions_[i]->DeleteDogs(list_id_for_deletion);
+
+            for (int i = 0; i < game_sessions_.size(); ++i)
+                game_sessions_[i]->GenerateLoot(time_delta);
+
+            for (int i = 0; i < game_sessions_.size(); ++i) {
+                game_sessions_[i]->CollectionItems(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
+                game_sessions_[i]->LeaveItems(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
+            }
+            app_listener_.OnTick(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
+
+        });
+    }
 }

@@ -647,7 +647,8 @@ namespace http_handler {
             };
  
            
-            if (static_cast<std::string>(req.target()) == Endpoints::API_Maps_Endpoint().substr(0,12) || static_cast<std::string>(req.target()).substr(0, 13) == Endpoints::API_Maps_Endpoint()) {
+            if (static_cast<std::string>(req.target()) == Endpoints::API_Maps_Endpoint().substr(0,12) || 
+                static_cast<std::string>(req.target()).substr(0, 13) == Endpoints::API_Maps_Endpoint()) {
                 GetAPI_info_RequestHand(req, send);
                 return;
             }

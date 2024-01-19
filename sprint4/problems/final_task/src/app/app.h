@@ -22,7 +22,7 @@ namespace app {
 	class Player {
 
 	public:
-        Player() {};
+        Player() {}
 
         Player(std::shared_ptr<model::Dog> dog, std::shared_ptr<model::GameSession> game_session):
             dog_(dog), 
@@ -62,12 +62,7 @@ namespace app {
 
         void MoveDog(double time_delta);
 
-        void CheckRetirementTime(double time_delta) {
-            if (dog_->GetSpeed().s_x == 0. && dog_->GetSpeed().s_y == 0.)
-                dog_->IncreaceDownTime(time_delta);
-            if (dog_->GetSpeed().s_x != 0. || dog_->GetSpeed().s_y != 0.)
-                dog_->ResetDownTime();
-        }
+        void CheckRetirementTime(double time_delta);
 
         double GetDownTime() {
             return dog_->GetDownTime();
@@ -97,7 +92,7 @@ namespace app {
         std::shared_ptr<model::Dog> dog_;
 		std::shared_ptr<model::GameSession> game_session_;
 
-        double retirement_time_;
+        double retirement_time_ = 0;
 	};
 
     //contains the pairs player-tocken 
@@ -206,29 +201,7 @@ namespace app {
                   boost::asio::strand<boost::asio::io_context::executor_type>& strand, ApplicationListener& app_listener, postgres_tools::PostgresDatabase& database) :
             players_(players), tokens_(player_tokens), game_sessions_(game_sessions), strand_(strand), app_listener_(app_listener), database_(database) {}
 
-        void Tick(std::chrono::milliseconds time_delta) {
-            boost::asio::dispatch(strand_, [this, time_delta]() {
-                players_.MoveAllDogs(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
-                players_.IncreaseAllTimes(std::chrono::duration<double>(time_delta).count());
-                auto list_id_for_deletion = tokens_.CheckRetirementTime();
-
-                for (int i = 0; i < game_sessions_.size(); ++i)
-                    database_.AddRecordsAllDogs(*game_sessions_[i], list_id_for_deletion);
-
-                for (int i = 0; i < game_sessions_.size(); ++i)
-                    game_sessions_[i]->DeleteDogs(list_id_for_deletion);
-
-                for (int i = 0; i < game_sessions_.size(); ++i)
-                    game_sessions_[i]->GenerateLoot(time_delta);
-
-                for (int i = 0; i < game_sessions_.size(); ++i) {
-                    game_sessions_[i]->CollectionItems(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
-                    game_sessions_[i]->LeaveItems(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
-                }
-                app_listener_.OnTick(std::chrono::duration<double>(time_delta).count() * CLOCKS_PER_SEC);
-
-            });
-        }
+        void Tick(std::chrono::milliseconds time_delta);
     private:
         Players& players_;
         PlayerTokens& tokens_;
